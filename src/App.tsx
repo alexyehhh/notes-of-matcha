@@ -1,5 +1,7 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { useAuth } from './hooks/useAuth';
+import { AuthPage } from './components/AuthPage';
 import { LandingPage } from './components/LandingPage';
 import { EditablePage } from './components/EditablePage';
 import { GridView } from './components/GridView';
@@ -20,6 +22,7 @@ import * as matchaApi from './services/matchaApi';
 
 export default function App() {
   const didInit = useRef(false);
+  const { user, isLoading: isAuthLoading, signOut } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('landing');
   const [previousView, setPreviousView] = useState<ViewType>('landing');
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
@@ -506,8 +509,12 @@ export default function App() {
   };
 
   // Show loading screen while fetching data
-  if (isLoading) {
-    return <FullPageLoader text="Loading your matcha collection..." />;
+  if (isAuthLoading || isLoading) {
+    return <FullPageLoader text={isAuthLoading ? "Loading..." : "Loading your matcha collection..."} />;
+  }
+
+  if (!user) {
+    return <AuthPage />;
   }
 
   return (
