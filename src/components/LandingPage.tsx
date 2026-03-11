@@ -1,13 +1,13 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { MatchaEntry, ViewType } from "../types";
-import { ImageWithFallback } from './figma/ImageWithFallback';
+// import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useResponsive } from '../hooks/useResponsive';
-import svgPaths from '../imports/svg-6owz6pfb8x';
+// import svgPaths from '../imports/svg-6owz6pfb8x';
 // import imgRectangle3 from "figma:asset/dc6fd5a4a8fa791d2e308774ae9cdd5d0400c792.png";
 // import imgRectangle15 from "figma:asset/cc2e29cb7decd5e1b94615650ce7e42071d9c94a.png";
 // import imgRectangle16 from "figma:asset/e1d39a1e66254ce927156619bbbe9078d9bda195.png";
-import matchaImage from '../assets/rocky-matcha.png';
+// import matchaImage from '../assets/rocky-matcha.png';
 import Frame40 from '../imports/Frame40';
 import Group2 from '../imports/Group2';
 import { Trash2 } from 'lucide-react';
