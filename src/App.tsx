@@ -22,7 +22,7 @@ import * as matchaApi from './services/matchaApi';
 
 export default function App() {
   const didInit = useRef(false);
-  const { user, isLoading: isAuthLoading, signOut } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('landing');
   const [previousView, setPreviousView] = useState<ViewType>('landing');
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
@@ -34,11 +34,11 @@ export default function App() {
   const [isDataPersisted, setIsDataPersisted] = useState(true);
   const [lastSaveTime, setLastSaveTime] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
+  const [, setLoadError] = useState<string | null>(null);
   
   const pendingNavigationRef = useRef<(() => void) | null>(null);
 
-  const { isMobile, isTablet, isDesktop } = useResponsive();
+  const { isMobile, isTablet } = useResponsive();
 
   // Default entries to seed the database if empty
   const defaultEntries: MatchaEntry[] = [
@@ -306,30 +306,20 @@ export default function App() {
   }, [matchaEntries]);
 
   const reorderMatchaEntries = useCallback(async (newOrder: MatchaEntry[]) => {
-    try {
-      setIsDataPersisted(false);
-      
-      // Optimistic update
-      setMatchaEntries(newOrder);
-      
-      // Update backend
-      const orderIds = newOrder.map(entry => entry.id);
-      await matchaApi.reorderMatchaEntries(orderIds);
-      
-      setLastSaveTime(new Date());
-      setIsDataPersisted(true);
-    } catch (error) {
-      console.error('Failed to reorder entries:', error);
-      toast.error('Failed to save new order');
-      // Revert optimistic update
-      try {
-        const entries = await matchaApi.fetchMatchaEntries();
-        setMatchaEntries(entries);
-      } catch (reloadError) {
-        console.error('Failed to reload entries:', reloadError);
-      }
-    }
-  }, []);
+  try {
+    setIsDataPersisted(false);
+    // Update matchaEntries to reflect new order without triggering a re-render loop
+    setMatchaEntries(newOrder);
+    // Save to Supabase in background
+    const orderIds = newOrder.map(entry => entry.id);
+    await matchaApi.reorderMatchaEntries(orderIds);
+    setLastSaveTime(new Date());
+    setIsDataPersisted(true);
+  } catch (error) {
+    console.error('Failed to reorder entries:', error);
+    toast.error('Failed to save new order');
+  }
+}, []);
 
   // Handle unsaved changes dialog
   const handleDiscardChanges = useCallback(() => {
@@ -619,7 +609,7 @@ export default function App() {
           
           {currentView === 'grid' && (
             <GridView
-              entries={filteredEntries}
+              entries={matchaEntries}
               activeFilters={activeFilters}
               onFiltersChange={setActiveFilters}
               onNavigateToView={navigateToView}
