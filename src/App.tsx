@@ -168,35 +168,28 @@ export default function App() {
   }, []);
 
   const addMatchaEntry = useCallback(async (entry: Omit<MatchaEntry, 'id'>) => {
-    const newEntry: MatchaEntry = {
-      ...entry,
-      id: Date.now().toString()
-    };
-    
     try {
       setIsDataPersisted(false);
-      
-      // Optimistic update
+
+      // Create in backend first to get the real Supabase ID
+      const tempEntry: MatchaEntry = { ...entry, id: Date.now().toString() };
+      const createdEntry = await matchaApi.createMatchaEntry(tempEntry);
+
+      // Add real entry to state and navigate to it
       setMatchaEntries(prev => {
-        const updated = [...prev, newEntry];
-        // Navigate to the new entry
+        const updated = [...prev, createdEntry];
         setCurrentCarouselIndex(updated.length - 1);
         return updated;
       });
-      
-      // Create in backend
-      await matchaApi.createMatchaEntry(newEntry);
-      
+
       toast.success(`Added "${entry.name}" to your collection`);
       setLastSaveTime(new Date());
       setIsDataPersisted(true);
-      
-      return newEntry.id;
+
+      return createdEntry.id;
     } catch (error) {
       console.error('Failed to add entry:', error);
       toast.error('Failed to add entry');
-      // Revert optimistic update
-      setMatchaEntries(prev => prev.filter(e => e.id !== newEntry.id));
       return '';
     }
   }, []);
@@ -278,10 +271,7 @@ export default function App() {
   const navigateToEditableView = useCallback((entryId: string) => {
     const entryIndex = matchaEntries.findIndex(e => e.id === entryId);
     
-    if (entryIndex === -1) {
-      toast.error('Entry not found');
-      return;
-    }
+    if (entryIndex === -1) return;
     
     const doNavigation = () => {
       setIsTransitioning(true);
