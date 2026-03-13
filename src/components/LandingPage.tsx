@@ -54,9 +54,9 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
         // No image property - Frame40 will be used as default
       };
       const entryId = await onAddEntry(newEntry);
-      // Navigate to edit page for new entry after a brief delay
+      // Navigate to edit page after real ID is returned from Supabase
       if (entryId) {
-        setTimeout(() => onEditEntry(entryId), 500);
+        onEditEntry(entryId);
       }
     } else if (clickedIndex >= 0 && clickedIndex < totalEntries) {
       if (clickedIndex !== currentIndex) {
