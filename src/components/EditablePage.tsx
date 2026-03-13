@@ -79,16 +79,6 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
     // Brief saving indicator
     setTimeout(() => {
       setIsSaving(false);
-      toast.success("Changes saved successfully", {
-        duration: 2000,
-        style: {
-          background: '#342209',
-          color: '#fff9f3',
-          border: '1px solid #7CB342',
-          borderRadius: '6px',
-          fontFamily: 'Syne, sans-serif',
-        },
-      });
     }, 300);
   }, [entry.id, onUpdateEntry, localName, localBrand, localPrefecture, localNotes, localFlavorProfile, localTasteAnalysis, localColor, localFavorite]);
 
