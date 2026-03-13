@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { MatchaEntry, ViewType } from '../types';
-import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useResponsive } from '../hooks/useResponsive';
 import svgPaths from '../imports/svg-6owz6pfb8x';
 import Group2 from '../imports/Group2';
@@ -80,10 +79,10 @@ function ListItem({ entry, onEditEntry, onUpdateEntry, activeFilters }: {
     }
   }, [handleSave, entry.name, entry.prefecture]);
 
-  const getActiveFlavorProfiles = () => {
-    return Object.entries(entry.flavorProfile)
-      .filter(([_, active]) => active)
-      .map(([flavor, _]) => flavor);
+  const getActiveFlavorProfiles = (): ('grassy' | 'nutty' | 'floral')[] => {
+  return Object.entries(entry.flavorProfile)
+    .filter(([_, active]) => active)
+    .map(([flavor, _]) => flavor as 'grassy' | 'nutty' | 'floral');
   };
 
   const toggleFlavorProfile = useCallback((flavor: 'grassy' | 'nutty' | 'floral') => {
@@ -412,7 +411,7 @@ function NewEntryItem({ onAddEntry }: { onAddEntry: (entry: Omit<MatchaEntry, 'i
 }
 
 export function ListView({ entries, activeFilters, onFiltersChange, onNavigateToView, onEditEntry, onUpdateEntry, onAddEntry }: ListViewProps) {
-  const { isMobile, isTablet, isDesktop } = useResponsive();
+  const { isMobile, isTablet} = useResponsive();
   
   const toggleFilter = useCallback((filter: string) => {
     if (activeFilters.includes(filter)) {
