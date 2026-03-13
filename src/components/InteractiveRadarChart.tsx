@@ -19,7 +19,6 @@ const CENTER_X = CHART_SIZE / 2;
 const CENTER_Y = CHART_SIZE / 2;
 const MAX_RADIUS = 100;
 const GRID_LEVELS = 4;
-const _HANDLE_SIZE = 10;
 
 const TASTE_LABELS = [
   { key: 'sweetness', label: 'Sweetness', angle: -90 },
