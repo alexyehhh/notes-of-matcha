@@ -24,8 +24,8 @@ interface LandingPageProps {
 
 export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateToView, onEditEntry, onAddEntry, onDeleteEntry }: LandingPageProps) {
   const [hoveredImageIndex, setHoveredImageIndex] = useState<number | null>(null);
-  const [windowSize, setWindowSize] = useState({ width: typeof window !== 'undefined' ? window.innerWidth : 1200, height: typeof window !== 'undefined' ? window.innerHeight : 800 });
-  const { isMobile, isTablet, isDesktop } = useResponsive();
+  const [, setWindowSize] = useState({ width: typeof window !== 'undefined' ? window.innerWidth : 1200, height: typeof window !== 'undefined' ? window.innerHeight : 800 });
+  const { isMobile, isTablet } = useResponsive();
   const totalEntries = entries.length;
   
   // Listen for window resize to update carousel dimensions
@@ -356,7 +356,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
           )}
           
           {/* Regular carousel images when entries exist */}
-          {entries.length > 0 && carouselImages.map((imageData, idx) => {
+          {entries.length > 0 && carouselImages.map((imageData, _idx) => {
             if (imageData.isHidden) return null;
             const isCenter = imageData.position === 1;
             const isLeft = imageData.position === 0;

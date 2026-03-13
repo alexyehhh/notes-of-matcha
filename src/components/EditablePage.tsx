@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import * as React from 'react';
 import { motion } from 'motion/react';
 // import { toast } from "sonner@2.0.3";
@@ -163,170 +163,18 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
         },
       });
 
-      // Dynamic imports to reduce initial bundle size
-      const [
-        { reverseImageSearchService },
-        { ocrService }
-      ] = await Promise.all([
-        import('../services/reverseImageSearch'),
-        import('../services/ocrService')
-      ]);
-      
-      // Run both OCR and reverse image search in parallel
-      const [productMatches, ocrResult] = await Promise.all([
-        reverseImageSearchService.findProductMatches(file).catch(() => []),
-        ocrService.extractText(file).catch(() => null)
-      ]);
-      
-      console.log('Product Matches Found:', productMatches);
-      console.log('OCR Result:', ocrResult);
-
-      // Combine results from both approaches
-      let combinedData: Partial<MatchaEntry> = {};
-      let dataSource = '';
-      let confidence = 0;
-
-      // Parse OCR results if available
-      if (ocrResult && ocrResult.text) {
-        const ocrParsedData = ocrService.parseTextData(ocrResult.text);
-        console.log('OCR Parsed Data:', ocrParsedData);
-        
-        // Use OCR data as primary source
-        if (ocrParsedData.name) combinedData.name = ocrParsedData.name;
-        if (ocrParsedData.brand) combinedData.brand = ocrParsedData.brand;
-        if (ocrParsedData.prefecture) combinedData.prefecture = ocrParsedData.prefecture;
-        if (ocrParsedData.notes) combinedData.notes = ocrParsedData.notes;
-        if (ocrParsedData.flavorProfile) combinedData.flavorProfile = ocrParsedData.flavorProfile;
-        
-        dataSource = 'text extraction';
-        confidence = ocrResult.confidence;
-      }
-
-      // Parse reverse image search results and fill gaps
-      if (productMatches.length > 0) {
-        const searchParsedData = reverseImageSearchService.parseProductData(productMatches);
-        console.log('Search Parsed Data:', searchParsedData);
-        
-        // Fill missing data from reverse image search
-        if (!combinedData.name && searchParsedData.name) {
-          combinedData.name = searchParsedData.name;
-          dataSource = dataSource ? `${dataSource} + product match` : 'product match';
-        }
-        if (!combinedData.brand && searchParsedData.brand) {
-          combinedData.brand = searchParsedData.brand;
-          dataSource = dataSource ? `${dataSource} + product match` : 'product match';
-        }
-        if (!combinedData.prefecture && searchParsedData.prefecture) {
-          combinedData.prefecture = searchParsedData.prefecture;
-          dataSource = dataSource ? `${dataSource} + product match` : 'product match';
-        }
-        if (!combinedData.notes && searchParsedData.notes) {
-          combinedData.notes = searchParsedData.notes;
-          dataSource = dataSource ? `${dataSource} + product match` : 'product match';
-        }
-        
-        // Combine flavor profiles (OR operation - if either source detected a flavor, include it)
-        if (searchParsedData.flavorProfile || combinedData.flavorProfile) {
-          combinedData.flavorProfile = {
-            grassy: (combinedData.flavorProfile?.grassy || searchParsedData.flavorProfile?.grassy) || entry.flavorProfile.grassy,
-            nutty: (combinedData.flavorProfile?.nutty || searchParsedData.flavorProfile?.nutty) || entry.flavorProfile.nutty,
-            floral: (combinedData.flavorProfile?.floral || searchParsedData.flavorProfile?.floral) || entry.flavorProfile.floral
-          };
-        }
-
-        // Update confidence if we have search results
-        if (!confidence && searchParsedData.confidence) {
-          confidence = searchParsedData.confidence;
-        }
-      }
-
-      // Apply combined data to entry
-      const updates: Partial<MatchaEntry> = {};
-      let foundData = false;
-
-      if (combinedData.name && combinedData.name.length > 2) {
-        updates.name = combinedData.name;
-        setLocalName(combinedData.name);
-        foundData = true;
-      }
-
-      if (combinedData.brand && combinedData.brand.length > 1) {
-        updates.brand = combinedData.brand;
-        setLocalBrand(combinedData.brand);
-        foundData = true;
-      }
-
-      if (combinedData.prefecture && combinedData.prefecture.length > 1) {
-        updates.prefecture = combinedData.prefecture;
-        setLocalPrefecture(combinedData.prefecture);
-        foundData = true;
-      }
-
-      if (combinedData.notes && combinedData.notes.length > 10) {
-        updates.notes = combinedData.notes;
-        setLocalNotes(combinedData.notes);
-        foundData = true;
-      }
-
-      // Update flavor profile if any flavors were detected
-      if (combinedData.flavorProfile) {
-        const hasAnyFlavor = Object.values(combinedData.flavorProfile).some(value => value === true);
-        if (hasAnyFlavor) {
-          updates.flavorProfile = combinedData.flavorProfile;
-          foundData = true;
-        }
-      }
-
+      // Image analysis not yet implemented
       setIsProcessingImage(false);
-
-      if (foundData) {
-        // Apply OCR/analysis results immediately
-        setIsSaving(true);
-        onUpdateEntry(entry.id, updates);
-        setTimeout(() => setIsSaving(false), 300);
-        
-        // Show success with combined analysis details
-        const confidencePercent = Math.round((confidence || 0.80) * 100);
-        
-        toast.success(`Analysis complete! ${confidencePercent}% confidence using ${dataSource}`, {
-          duration: 5000,
-          style: {
-            background: '#342209',
-            color: '#fff9f3',
-            border: '1px solid #7CB342',
-            borderRadius: '6px',
-            fontFamily: 'Syne, sans-serif',
-          },
-        });
-
-        // Show additional info about extracted fields
-        setTimeout(() => {
-          const extractedFields = Object.keys(updates).filter(key => key !== 'flavorProfile');
-          if (updates.flavorProfile) extractedFields.push('flavor profile');
-          
-          toast.info(`Auto-filled: ${extractedFields.join(', ')}`, {
-            duration: 3000,
-            style: {
-              background: '#342209',
-              color: '#fff9f3',
-              border: '1px solid #7CB342',
-              borderRadius: '6px',
-              fontFamily: 'Syne, sans-serif',
-            },
-          });
-        }, 1000);
-      } else {
-        toast.warning("Image analyzed but no matcha product information found. Try a clearer image with visible text or packaging.", {
-          duration: 4000,
-          style: {
-            background: '#342209',
-            color: '#fff9f3',
-            border: '1px solid #f39c12',
-            borderRadius: '6px',
-            fontFamily: 'Syne, sans-serif',
-          },
-        });
-      }
+      toast.info("Image analysis coming soon.", {
+        duration: 3000,
+        style: {
+          background: '#342209',
+          color: '#fff9f3',
+          border: '1px solid #7CB342',
+          borderRadius: '6px',
+          fontFamily: 'Syne, sans-serif',
+        },
+      });
       
     } catch (error) {
       console.error('Error processing image:', error);

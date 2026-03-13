@@ -1,4 +1,5 @@
-import React, { Component, ReactNode, useCallback } from 'react';
+import React, { Component, useCallback } from 'react';
+import type { ReactNode } from 'react';
 import { motion } from 'motion/react';
 
 interface Props {
@@ -79,7 +80,7 @@ export class ErrorBoundary extends Component<Props, State> {
               We encountered an unexpected error. This might be a temporary issue.
             </p>
 
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {import.meta.env.DEV && this.state.error && (
               <details className="mb-6 text-left">
                 <summary className="cursor-pointer text-sm text-[#342209]/60 mb-2">
                   Error Details

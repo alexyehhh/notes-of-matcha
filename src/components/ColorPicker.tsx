@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'motion/react';
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { Pipette, Palette, Check, X } from 'lucide-react';
 
 interface ColorPickerProps {
@@ -23,7 +23,7 @@ export function ColorPicker({ selectedColor, onChange }: ColorPickerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Check for EyeDropper API support
-  useState(() => {
+  useEffect(() => {
     if ('EyeDropper' in window) {
       setIsEyeDropperSupported(true);
     }

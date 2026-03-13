@@ -14,7 +14,7 @@ import wakatakeImage from './assets/wakatake.jpeg';
 import type { MatchaEntry, ViewType } from "./types";
 
 import { useResponsive } from './hooks/useResponsive';
-import { Toaster } from './components/ui/sonner';
+import { Toaster } from 'sonner';
 import { toast } from 'sonner';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { FullPageLoader } from './components/LoadingSpinner';
@@ -28,7 +28,7 @@ export default function App() {
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
   const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [, setIsTransitioning] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [isDataPersisted, setIsDataPersisted] = useState(true);
