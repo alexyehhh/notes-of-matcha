@@ -1,9 +1,8 @@
-import React, { useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState, useCallback, useRef } from 'react';
+import { motion } from 'motion/react';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import type { MatchaEntry, ViewType } from '../types';
-import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useResponsive } from '../hooks/useResponsive';
 import svgPaths from '../imports/svg-6owz6pfb8x';
 import Group2 from '../imports/Group2';
@@ -26,18 +25,25 @@ interface DragItem {
   type: string;
 }
 
-function GridCard({ entry, index, moveCard, onEditEntry, onUpdateEntry, activeFilters }: {
+function GridCard({ entry, index, moveCard, onDrop, onEditEntry, onUpdateEntry, activeFilters }: {
   entry: MatchaEntry;
   index: number;
   moveCard: (dragIndex: number, hoverIndex: number) => void;
+  onDrop: () => void;
   onEditEntry: (entryId: string) => void;
   onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => void;
   activeFilters: string[];
 }) {
   const { isMobile, isTablet } = useResponsive();
+  const indexRef = useRef(index);
+  indexRef.current = index;
+
   const [{ isDragging }, dragRef] = useDrag({
     type: 'MATCHA_CARD',
-    item: { id: entry.id, index, type: 'MATCHA_CARD' },
+    item: () => ({ id: entry.id, index: indexRef.current, type: 'MATCHA_CARD' }),
+    end: () => {
+      onDrop();
+    },
     collect: (monitor) => ({
       isDragging: monitor.isDragging()
     })
@@ -46,9 +52,9 @@ function GridCard({ entry, index, moveCard, onEditEntry, onUpdateEntry, activeFi
   const [, dropRef] = useDrop({
     accept: 'MATCHA_CARD',
     hover: (item: DragItem) => {
-      if (!item || item.index === index) return;
-      moveCard(item.index, index);
-      item.index = index;
+      if (!item || item.index === indexRef.current) return;
+      moveCard(item.index, indexRef.current);
+      item.index = indexRef.current;
     }
   });
 
@@ -95,15 +101,12 @@ function GridCard({ entry, index, moveCard, onEditEntry, onUpdateEntry, activeFi
     : { bottom: 'bottom-[18px]', left: 'left-[22px]', width: 'w-[63px]' };
 
   return (
-    <motion.div
-      ref={(node) => dragRef(dropRef(node))}
+    <div
+      ref={(node) => dragRef(dropRef(node)) as any}
       onClick={() => onEditEntry(entry.id)}
-      className={`relative ${cardDimensions.width} ${cardDimensions.height} bg-[#fff9f3] rounded-[7px] border-[2.52px] border-[#c2b7ab] border-solid cursor-pointer opacity-50 hover:opacity-75 transition-opacity ${
-        isDragging ? 'opacity-30' : ''
+      className={`relative ${cardDimensions.width} ${cardDimensions.height} bg-[#fff9f3] rounded-[7px] border-[2.52px] border-[#c2b7ab] border-solid cursor-grab transition-opacity hover:opacity-90 ${
+        isDragging ? 'opacity-30' : 'opacity-60'
       }`}
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      layout
     >
       {/* Image or Frame40 default */}
       <div className={`absolute ${imageDimensions.top} ${imageDimensions.left} ${imageDimensions.width} ${imageDimensions.height} rounded-[4px] border-[2.52px] border-[#f6ebe1] border-solid overflow-hidden`}>
@@ -188,7 +191,7 @@ function GridCard({ entry, index, moveCard, onEditEntry, onUpdateEntry, activeFi
           </div>
         ))}
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -247,21 +250,31 @@ function NewEntryCard({ onAddEntry }: { onAddEntry: (entry: Omit<MatchaEntry, 'i
 
 function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateToView, onEditEntry, onUpdateEntry, onAddEntry, onReorderEntries }: GridViewProps) {
   const [localEntries, setLocalEntries] = useState(entries);
-  const { isMobile, isTablet, isDesktop } = useResponsive();
+  const localEntriesRef = useRef(entries);
+  const { isMobile, isTablet } = useResponsive();
 
-  // Update localEntries when entries prop changes (due to filtering)
+  // Only sync from parent when IDs change (add/delete), not on reorder
   React.useEffect(() => {
-    setLocalEntries(entries);
+    const localIds = localEntriesRef.current.map(e => e.id).join(',');
+    const parentIds = entries.map(e => e.id).join(',');
+    if (localIds !== parentIds) {
+      setLocalEntries(entries);
+      localEntriesRef.current = entries;
+    }
   }, [entries]);
 
   const moveCard = useCallback((dragIndex: number, hoverIndex: number) => {
-    const newEntries = [...localEntries];
+    const newEntries = [...localEntriesRef.current];
     const draggedEntry = newEntries[dragIndex];
     newEntries.splice(dragIndex, 1);
     newEntries.splice(hoverIndex, 0, draggedEntry);
-    setLocalEntries(newEntries);
-    onReorderEntries(newEntries);
-  }, [localEntries, onReorderEntries]);
+    localEntriesRef.current = newEntries;
+    setLocalEntries([...newEntries]);
+  }, []);
+
+  const handleDrop = useCallback(() => {
+    onReorderEntries(localEntriesRef.current);
+  }, [onReorderEntries]);
 
   const toggleFilter = useCallback((filter: string) => {
     if (activeFilters.includes(filter)) {
@@ -413,19 +426,18 @@ function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateTo
       <div className={`${responsive.gridTop} pb-[100px] ${responsive.gridPadding}`}>
         <div className={`grid ${responsive.gridCols} ${responsive.gridGap} justify-items-center`}>
           <NewEntryCard onAddEntry={onAddEntry} />
-          <AnimatePresence>
-            {localEntries.map((entry, index) => (
-              <GridCard
-                key={entry.id}
-                entry={entry}
-                index={index}
-                moveCard={moveCard}
-                onEditEntry={onEditEntry}
-                onUpdateEntry={onUpdateEntry}
-                activeFilters={activeFilters}
-              />
-            ))}
-          </AnimatePresence>
+          {localEntries.map((entry, index) => (
+            <GridCard
+              key={entry.id}
+              entry={entry}
+              index={index}
+              moveCard={moveCard}
+              onDrop={handleDrop}
+              onEditEntry={onEditEntry}
+              onUpdateEntry={onUpdateEntry}
+              activeFilters={activeFilters}
+            />
+          ))}
         </div>
       </div>
 
