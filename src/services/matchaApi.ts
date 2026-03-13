@@ -62,7 +62,7 @@ export async function seedIfEmpty(defaultEntries: MatchaEntry[]): Promise<Matcha
 
 // ─── Create ──────────────────────────────────────────────────────────────────
 
-export async function createMatchaEntry(entry: MatchaEntry, sortOrder?: number): Promise<void> {
+export async function createMatchaEntry(entry: MatchaEntry, sortOrder?: number): Promise<MatchaEntry> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
@@ -119,6 +119,12 @@ export async function createMatchaEntry(entry: MatchaEntry, sortOrder?: number):
     });
 
   if (flavorError) throw flavorError;
+
+  // Return the full entry with the real Supabase-generated ID
+  return {
+    ...entry,
+    id: newEntry.id,
+  };
 }
 
 // ─── Update ──────────────────────────────────────────────────────────────────
