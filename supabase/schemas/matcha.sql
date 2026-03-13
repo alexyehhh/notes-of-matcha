@@ -46,6 +46,7 @@ create table "matcha_entries" (
   "image_url"  text,                               -- Supabase Storage public URL
   "created_at" timestamptz not null default now(),
   "updated_at" timestamptz not null default now(),
+  "sort_order"  integer not null default 0,
 
   primary key ("id")
 );
@@ -54,6 +55,7 @@ create table "matcha_entries" (
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
+security definer set search_path = ''
 as $$
 begin
   new.updated_at = now();
@@ -112,28 +114,28 @@ alter table public.flavor_profiles enable row level security;
 -- profiles: users can only see and update their own profile
 create policy "Users can view own profile"
   on public.profiles for select
-  using (auth.uid() = id);
+  using ((select auth.uid()) = id);
 
 create policy "Users can update own profile"
   on public.profiles for update
-  using (auth.uid() = id);
+  using ((select auth.uid()) = id);
 
 -- matcha_entries: full CRUD for own entries only
 create policy "Users can view own entries"
   on public.matcha_entries for select
-  using (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id);
 
 create policy "Users can insert own entries"
   on public.matcha_entries for insert
-  with check (auth.uid() = user_id);
+  with check ((select auth.uid()) = user_id);
 
 create policy "Users can update own entries"
   on public.matcha_entries for update
-  using (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id);
 
 create policy "Users can delete own entries"
   on public.matcha_entries for delete
-  using (auth.uid() = user_id);
+  using ((select auth.uid()) = user_id);
 
 -- taste_analysis: access via parent entry ownership
 create policy "Users can view own taste analysis"
@@ -141,7 +143,7 @@ create policy "Users can view own taste analysis"
   using (
     exists (
       select 1 from public.matcha_entries e
-      where e.id = entry_id and e.user_id = auth.uid()
+      where e.id = entry_id and e.user_id = (select auth.uid())
     )
   );
 
@@ -150,7 +152,7 @@ create policy "Users can insert own taste analysis"
   with check (
     exists (
       select 1 from public.matcha_entries e
-      where e.id = entry_id and e.user_id = auth.uid()
+      where e.id = entry_id and e.user_id = (select auth.uid())
     )
   );
 
@@ -159,7 +161,7 @@ create policy "Users can update own taste analysis"
   using (
     exists (
       select 1 from public.matcha_entries e
-      where e.id = entry_id and e.user_id = auth.uid()
+      where e.id = entry_id and e.user_id = (select auth.uid())
     )
   );
 
@@ -168,7 +170,7 @@ create policy "Users can delete own taste analysis"
   using (
     exists (
       select 1 from public.matcha_entries e
-      where e.id = entry_id and e.user_id = auth.uid()
+      where e.id = entry_id and e.user_id = (select auth.uid())
     )
   );
 
@@ -178,7 +180,7 @@ create policy "Users can view own flavor profiles"
   using (
     exists (
       select 1 from public.matcha_entries e
-      where e.id = entry_id and e.user_id = auth.uid()
+      where e.id = entry_id and e.user_id = (select auth.uid())
     )
   );
 
@@ -187,7 +189,7 @@ create policy "Users can insert own flavor profiles"
   with check (
     exists (
       select 1 from public.matcha_entries e
-      where e.id = entry_id and e.user_id = auth.uid()
+      where e.id = entry_id and e.user_id = (select auth.uid())
     )
   );
 
@@ -196,7 +198,7 @@ create policy "Users can update own flavor profiles"
   using (
     exists (
       select 1 from public.matcha_entries e
-      where e.id = entry_id and e.user_id = auth.uid()
+      where e.id = entry_id and e.user_id = (select auth.uid())
     )
   );
 
@@ -205,6 +207,6 @@ create policy "Users can delete own flavor profiles"
   using (
     exists (
       select 1 from public.matcha_entries e
-      where e.id = entry_id and e.user_id = auth.uid()
+      where e.id = entry_id and e.user_id = (select auth.uid())
     )
   );
