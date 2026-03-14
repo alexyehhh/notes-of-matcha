@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { MatchaEntry, ViewType } from "../types";
 // import { ImageWithFallback } from './figma/ImageWithFallback';
@@ -24,6 +24,7 @@ interface LandingPageProps {
 
 export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateToView, onEditEntry, onAddEntry, onDeleteEntry }: LandingPageProps) {
   const [hoveredImageIndex, setHoveredImageIndex] = useState<number | null>(null);
+  const touchStartRef = useRef<number | null>(null);
   const [, setWindowSize] = useState({ width: typeof window !== 'undefined' ? window.innerWidth : 1200, height: typeof window !== 'undefined' ? window.innerHeight : 800 });
   const { isMobile, isTablet } = useResponsive();
   const totalEntries = entries.length;
@@ -37,6 +38,23 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
+
+  // Arrow key navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (totalEntries === 0) return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        onIndexChange((currentIndex - 1 + totalEntries) % totalEntries);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        onIndexChange((currentIndex + 1) % totalEntries);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentIndex, totalEntries, onIndexChange]);
   
   const handleCarouselClick = useCallback( 
     async (clickedIndex: number, isNewEntry = false) => {
@@ -322,7 +340,23 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
       )}
 
       {/* Carousel Container */}
-      <div className={`absolute ${responsive.carouselTop} left-1/2 transform -translate-x-1/2 ${responsive.carouselWidth}`} style={{ height: `${responsive.centerHeight}px` }}>
+      <div
+        className={`absolute ${responsive.carouselTop} left-1/2 transform -translate-x-1/2 ${responsive.carouselWidth}`}
+        style={{ height: `${responsive.centerHeight}px` }}
+        onTouchStart={(e) => { touchStartRef.current = e.touches[0].clientX; }}
+        onTouchEnd={(e) => {
+          if (touchStartRef.current === null || totalEntries === 0) return;
+          const diff = touchStartRef.current - e.changedTouches[0].clientX;
+          if (Math.abs(diff) > 40) {
+            if (diff > 0) {
+              onIndexChange((currentIndex + 1) % totalEntries);
+            } else {
+              onIndexChange((currentIndex - 1 + totalEntries) % totalEntries);
+            }
+          }
+          touchStartRef.current = null;
+        }}
+      >
         <div className="relative w-full h-full flex items-center justify-center">
           {/* Show centered Frame40 when no entries exist */}
           {entries.length === 0 && (
