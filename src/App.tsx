@@ -7,13 +7,10 @@ import { EditablePage } from './components/EditablePage';
 import { GridView } from './components/GridView';
 import { ListView } from './components/ListView';
 import { SecretPage } from './components/SecretPage';
-// import exampleImage from 'figma:asset/dc6fd5a4a8fa791d2e308774ae9cdd5d0400c792.png';
-// import matchaCanImage from 'figma:asset/b736a12ee6196acb8ff9a147ca76a20998de5573.png';
 import rockyImage from './assets/rocky-matcha.png';
 import wakatakeImage from './assets/wakatake.jpeg';
 import type { MatchaEntry, ViewType } from "./types";
 
-import { useResponsive } from './hooks/useResponsive';
 import { Toaster } from 'sonner';
 import { toast } from 'sonner';
 import { ErrorBoundary } from './components/ErrorBoundary';
@@ -31,14 +28,12 @@ export default function App() {
   const [, setIsTransitioning] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
-  const [isDataPersisted, setIsDataPersisted] = useState(true);
-  const [lastSaveTime, setLastSaveTime] = useState<Date>(new Date());
+  const [, setIsDataPersisted] = useState(true);
+  const [, setLastSaveTime] = useState<Date>(new Date());
   const [isLoading, setIsLoading] = useState(true);
   const [, setLoadError] = useState<string | null>(null);
   
   const pendingNavigationRef = useRef<(() => void) | null>(null);
-
-  const { isMobile, isTablet } = useResponsive();
 
   // Default entries to seed the database if empty
   const defaultEntries: MatchaEntry[] = [
@@ -346,58 +341,6 @@ export default function App() {
     return selectedEntryId ? matchaEntries.findIndex(e => e.id === selectedEntryId) : -1;
   }, [selectedEntryId, matchaEntries]);
 
-  // Enhanced statistics for better UX
-  const appStats = useMemo(() => {
-    const totalEntries = matchaEntries.length;
-    const favoriteEntries = matchaEntries.filter(e => e.favorite).length;
-    const averageRating = totalEntries > 0 
-      ? matchaEntries.reduce((sum, entry) => {
-          const avgScore = Object.values(entry.tasteAnalysis).reduce((a, b) => a + b, 0) / 5;
-          return sum + avgScore;
-        }, 0) / totalEntries
-      : 0;
-    
-    return { totalEntries, favoriteEntries, averageRating };
-  }, [matchaEntries]);
-
-  // Get contextual status information based on current view
-  const getContextualInfo = useMemo(() => {
-    switch (currentView) {
-      case 'landing':
-        return {
-          primary: `${appStats.totalEntries} entries in collection`,
-          secondary: appStats.favoriteEntries > 0 ? `${appStats.favoriteEntries} favorites` : 'Swipe to explore',
-          tip: 'Press Space to navigate • E to edit current'
-        };
-      case 'editable':
-        return {
-          primary: currentEntry ? `Editing "${currentEntry.name}"` : 'Edit mode',
-          secondary: `Entry ${currentEntryIndex + 1} of ${appStats.totalEntries}`,
-          tip: 'Press S to save • Esc to return'
-        };
-      case 'grid':
-        return {
-          primary: activeFilters.length > 0 ? `${filteredEntries.length} filtered entries` : `${appStats.totalEntries} entries`,
-          secondary: activeFilters.length > 0 ? `Filter: ${activeFilters.join(', ')}` : 'Drag to reorder',
-          tip: 'Press F to filter • Plus to add new'
-        };
-      case 'list':
-        return {
-          primary: activeFilters.length > 0 ? `${filteredEntries.length} filtered entries` : `${appStats.totalEntries} entries`,
-          secondary: activeFilters.length > 0 ? `Filter: ${activeFilters.join(', ')}` : 'Click to edit inline',
-          tip: 'Press F to filter • Tab for navigation'
-        };
-      case 'secret':
-        return {
-          primary: 'Hidden knowledge revealed',
-          secondary: 'The secrets of matcha unfold',
-          tip: 'Esc to return • Click cards to reveal'
-        };
-      default:
-        return { primary: '', secondary: '', tip: '' };
-    }
-  }, [currentView, appStats, currentEntry, currentEntryIndex, activeFilters, filteredEntries]);
-
   // Auto-save indicator
   useEffect(() => {
     if (hasUnsavedChanges) {
@@ -410,75 +353,6 @@ export default function App() {
       return () => clearTimeout(timer);
     }
   }, [hasUnsavedChanges]);
-
-  // Optimized keyboard navigation with stable event listener
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      // Prevent navigation when user is typing in inputs
-      if (event.target instanceof HTMLInputElement || 
-          event.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      // Global keyboard shortcuts
-      if (event.metaKey || event.ctrlKey) {
-        switch (event.key) {
-          case '1':
-            event.preventDefault();
-            navigateToView('landing');
-            break;
-          case '2':
-            event.preventDefault();
-            navigateToView('grid');
-            break;
-          case '3':
-            event.preventDefault();
-            navigateToView('list');
-            break;
-          case 'n':
-            event.preventDefault();
-            toast.info('Use the + button to add a new entry');
-            break;
-          case 's':
-            if (currentView === 'editable' && hasUnsavedChanges) {
-              event.preventDefault();
-              // Trigger save if in editable view
-              setHasUnsavedChanges(false);
-              setLastSaveTime(new Date());
-              toast.success('Changes saved');
-            }
-            break;
-        }
-      }
-
-      // View-specific shortcuts
-      switch (event.key) {
-        case 'Escape':
-          if (currentView !== 'landing') {
-            event.preventDefault();
-            navigateToView('landing');
-          }
-          break;
-        case 'e':
-          if (currentView === 'landing' && currentEntry) {
-            event.preventDefault();
-            navigateToEditableView(currentEntry.id);
-          }
-          break;
-        case ' ':
-          if (currentView === 'landing') {
-            event.preventDefault();
-            // Space to cycle through views
-            const nextView = currentView === 'landing' ? 'grid' : 'list';
-            navigateToView(nextView);
-          }
-          break;
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [currentView, navigateToView, navigateToEditableView, currentEntry, hasUnsavedChanges]);
 
   // Get transition direction for smoother animations
   const getTransitionDirection = () => {
@@ -652,50 +526,6 @@ export default function App() {
           className: 'backdrop-blur-sm',
         }}
       />
-
-      {/* Smart contextual status bar */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.3 }}
-        className={`fixed z-30 bg-white/85 backdrop-blur-sm border border-white/60 rounded-lg shadow-sm text-xs text-[#342209] font-['Syne'] transition-all duration-300 ${
-          isMobile 
-            ? 'bottom-4 left-4 right-4 p-2' 
-            : isTablet 
-            ? 'bottom-4 right-4 left-4 p-3 max-w-sm ml-auto' 
-            : 'bottom-4 right-4 p-3 max-w-xs'
-        }`}
-      >
-        {/* Primary info */}
-        <div className="flex items-center gap-2 mb-1">
-          <div className={`w-1.5 h-1.5 rounded-full ${isDataPersisted ? 'bg-[#7CB342]' : 'bg-amber-500 animate-pulse'}`} />
-          <span className="font-medium">{getContextualInfo.primary}</span>
-        </div>
-        
-        {/* Secondary info */}
-        {getContextualInfo.secondary && (
-          <div className="text-[10px] opacity-75 mb-1">
-            {getContextualInfo.secondary}
-          </div>
-        )}
-        
-        {/* Data persistence status */}
-        <div className="text-[10px] opacity-50 mb-1">
-          {isDataPersisted ? (
-            `Saved ${lastSaveTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-          ) : (
-            'Saving...'
-          )}
-        </div>
-        
-        {/* Keyboard shortcuts tip */}
-        {!isMobile && (
-          <div className="text-[10px] opacity-50 border-t border-[#342209]/10 pt-1">
-            {getContextualInfo.tip}
-          </div>
-        )}
-      </motion.div>
-
       </div>
     </ErrorBoundary>
   );
