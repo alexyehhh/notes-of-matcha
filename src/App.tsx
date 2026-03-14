@@ -250,13 +250,14 @@ export default function App() {
       setIsTransitioning(true);
       setPreviousView(currentView);
       
-      // Immediate transition - no artificial delay
+      // Push to browser history so back button works
+      window.history.pushState({ view, entryId }, '', `#${view}`);
+      
       setCurrentView(view);
       if (entryId) {
         setSelectedEntryId(entryId);
       }
       
-      // Reset transition state quickly
       setTimeout(() => setIsTransitioning(false), 50);
     };
 
@@ -271,6 +272,9 @@ export default function App() {
     const doNavigation = () => {
       setIsTransitioning(true);
       setPreviousView(currentView);
+      
+      // Push to browser history so back button works
+      window.history.pushState({ view: 'editable', entryId }, '', '#editable');
       
       setCurrentCarouselIndex(entryIndex);
       setSelectedEntryId(entryId);
@@ -340,6 +344,37 @@ export default function App() {
   const currentEntryIndex = useMemo(() => {
     return selectedEntryId ? matchaEntries.findIndex(e => e.id === selectedEntryId) : -1;
   }, [selectedEntryId, matchaEntries]);
+
+  // Use refs to avoid stale closures in popstate handler
+  const currentViewRef = useRef(currentView);
+  currentViewRef.current = currentView;
+  const matchaEntriesRef = useRef(matchaEntries);
+  matchaEntriesRef.current = matchaEntries;
+
+  // Browser back/forward button support
+  useEffect(() => {
+    // Set initial history state
+    window.history.replaceState({ view: 'landing' }, '', '#landing');
+
+    const handlePopState = (event: PopStateEvent) => {
+      const view = (event.state?.view as ViewType) ?? 'landing';
+      const entryId = event.state?.entryId;
+      setIsTransitioning(true);
+      setPreviousView(currentViewRef.current);
+      if (view === 'editable' && entryId) {
+        const entryIndex = matchaEntriesRef.current.findIndex(e => e.id === entryId);
+        if (entryIndex !== -1) {
+          setCurrentCarouselIndex(entryIndex);
+          setSelectedEntryId(entryId);
+        }
+      }
+      setCurrentView(view);
+      setTimeout(() => setIsTransitioning(false), 50);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []); // empty deps — refs keep values fresh without re-registering
 
   // Auto-save indicator
   useEffect(() => {
