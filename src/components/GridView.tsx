@@ -251,6 +251,7 @@ function NewEntryCard({ onAddEntry }: { onAddEntry: (entry: Omit<MatchaEntry, 'i
 function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateToView, onEditEntry, onUpdateEntry, onAddEntry, onReorderEntries }: GridViewProps) {
   const [localEntries, setLocalEntries] = useState(entries);
   const localEntriesRef = useRef(entries);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { isMobile, isTablet } = useResponsive();
 
   // Only sync from parent when IDs change (add/delete), not on reorder
@@ -283,6 +284,15 @@ function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateTo
       onFiltersChange([...activeFilters, filter]);
     }
   }, [activeFilters, onFiltersChange]);
+
+  // Apply filters visually — drag still uses full localEntries
+  const displayEntries = localEntries.filter(entry => {
+    const passesFlavorFilter = activeFilters.length === 0 || activeFilters.some(filter =>
+      entry.flavorProfile[filter.toLowerCase() as keyof typeof entry.flavorProfile]
+    );
+    const passesFavoriteFilter = !showFavoritesOnly || entry.favorite;
+    return passesFlavorFilter && passesFavoriteFilter;
+  });
 
   // Responsive values
   const getResponsiveValues = () => {
@@ -420,24 +430,42 @@ function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateTo
             </span>
           </button>
         ))}
+        {/* Favorites filter */}
+        <button
+          onClick={() => setShowFavoritesOnly(prev => !prev)}
+          className={`${
+            showFavoritesOnly ? 'bg-[#c2b7ab]' : 'bg-[#fff9f3]'
+          } border border-[#342209] rounded-[15.5px] ${responsive.filterPadding} ${responsive.filterHeight} flex items-center justify-center`}
+        >
+          <svg
+            className={isMobile ? 'w-[14px] h-[13px]' : isTablet ? 'w-[16px] h-[14px]' : 'w-[18px] h-[16px]'}
+            fill="none"
+            viewBox="0 0 17 16"
+          >
+            <path d={svgPaths.p19004b00} stroke="#342209" strokeWidth="1.5" fill={showFavoritesOnly ? '#342209' : 'none'} />
+          </svg>
+        </button>
       </div>
 
       {/* Grid */}
       <div className={`${responsive.gridTop} pb-[100px] ${responsive.gridPadding}`}>
         <div className={`grid ${responsive.gridCols} ${responsive.gridGap} justify-items-center`}>
           <NewEntryCard onAddEntry={onAddEntry} />
-          {localEntries.map((entry, index) => (
-            <GridCard
-              key={entry.id}
-              entry={entry}
-              index={index}
-              moveCard={moveCard}
-              onDrop={handleDrop}
-              onEditEntry={onEditEntry}
-              onUpdateEntry={onUpdateEntry}
-              activeFilters={activeFilters}
-            />
-          ))}
+          {displayEntries.map((entry) => {
+            const dragIndex = localEntriesRef.current.findIndex(e => e.id === entry.id);
+            return (
+              <GridCard
+                key={entry.id}
+                entry={entry}
+                index={dragIndex}
+                moveCard={moveCard}
+                onDrop={handleDrop}
+                onEditEntry={onEditEntry}
+                onUpdateEntry={onUpdateEntry}
+                activeFilters={activeFilters}
+              />
+            );
+          })}
         </div>
       </div>
 
