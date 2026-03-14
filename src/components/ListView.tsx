@@ -412,6 +412,8 @@ function NewEntryItem({ onAddEntry }: { onAddEntry: (entry: Omit<MatchaEntry, 'i
 
 export function ListView({ entries, activeFilters, onFiltersChange, onNavigateToView, onEditEntry, onUpdateEntry, onAddEntry }: ListViewProps) {
   const { isMobile, isTablet} = useResponsive();
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+
   
   const toggleFilter = useCallback((filter: string) => {
     if (activeFilters.includes(filter)) {
@@ -533,6 +535,21 @@ export function ListView({ entries, activeFilters, onFiltersChange, onNavigateTo
             </span>
           </button>
         ))}
+        {/* Favorites filter */}
+        <button
+          onClick={() => setShowFavoritesOnly(prev => !prev)}
+          className={`${
+            showFavoritesOnly ? 'bg-[#c2b7ab]' : 'bg-[#fff9f3]'
+          } border border-[#342209] rounded-[15.5px] ${responsive.filterPadding} ${responsive.filterHeight} flex items-center justify-center`}
+        >
+          <svg
+            className={isMobile ? 'w-[14px] h-[13px]' : isTablet ? 'w-[16px] h-[14px]' : 'w-[18px] h-[16px]'}
+            fill={showFavoritesOnly ? '#342209' : 'none'}
+            viewBox="0 0 17 16"
+          >
+            <path d={svgPaths.p19004b00} stroke="#342209" strokeWidth="1.5" fill={showFavoritesOnly ? '#342209' : 'none'} />
+          </svg>
+        </button>
       </div>
 
       {/* List */}
@@ -540,7 +557,7 @@ export function ListView({ entries, activeFilters, onFiltersChange, onNavigateTo
         <div className={`flex flex-col ${responsive.listGap} items-center`}>
           <NewEntryItem onAddEntry={onAddEntry} />
           <AnimatePresence>
-            {entries.map((entry) => (
+            {(showFavoritesOnly ? entries.filter(e => e.favorite) : entries).map((entry) => (
               <ListItem
                 key={entry.id}
                 entry={entry}
