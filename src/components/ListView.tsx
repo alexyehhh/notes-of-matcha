@@ -5,6 +5,7 @@ import { useResponsive } from '../hooks/useResponsive';
 import svgPaths from '../imports/svg-6owz6pfb8x';
 import Group2 from '../imports/Group2';
 import Frame40 from '../imports/Frame40';
+import { ProfileMenu } from './ProfileMenu';
 
 interface ListViewProps {
   entries: MatchaEntry[];
@@ -14,6 +15,8 @@ interface ListViewProps {
   onEditEntry: (entryId: string) => void;
   onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => void;
   onAddEntry: (entry: Omit<MatchaEntry, 'id'>) => void;
+  onSignOut: () => void;
+  onNavigateToProfile: () => void;
 }
 
 // Shared responsive layout configuration to ensure perfect alignment
@@ -410,7 +413,7 @@ function NewEntryItem({ onAddEntry }: { onAddEntry: (entry: Omit<MatchaEntry, 'i
   );
 }
 
-export function ListView({ entries, activeFilters, onFiltersChange, onNavigateToView, onEditEntry, onUpdateEntry, onAddEntry }: ListViewProps) {
+export function ListView({ entries, activeFilters, onFiltersChange, onNavigateToView, onEditEntry, onUpdateEntry, onAddEntry, onSignOut, onNavigateToProfile }: ListViewProps) {
   const { isMobile, isTablet} = useResponsive();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
 
@@ -518,6 +521,13 @@ export function ListView({ entries, activeFilters, onFiltersChange, onNavigateTo
         >
           <Group2 />
         </button>
+
+        {/* Profile Menu */}
+        <ProfileMenu
+          buttonSize={responsive.navButtonSize}
+          onSignOut={onSignOut}
+          onNavigateToProfile={onNavigateToProfile}
+        />
       </div>
 
       {/* Filter buttons */}

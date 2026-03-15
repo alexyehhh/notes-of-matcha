@@ -7,6 +7,7 @@ import { useResponsive } from '../hooks/useResponsive';
 import svgPaths from '../imports/svg-6owz6pfb8x';
 import Group2 from '../imports/Group2';
 import Frame40 from '../imports/Frame40';
+import { ProfileMenu } from './ProfileMenu';
 
 interface GridViewProps {
   entries: MatchaEntry[];
@@ -17,6 +18,8 @@ interface GridViewProps {
   onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => void;
   onAddEntry: (entry: Omit<MatchaEntry, 'id'>) => void;
   onReorderEntries: (entries: MatchaEntry[]) => void;
+  onSignOut: () => void;
+  onNavigateToProfile: () => void;
 }
 
 interface DragItem {
@@ -248,7 +251,7 @@ function NewEntryCard({ onAddEntry }: { onAddEntry: (entry: Omit<MatchaEntry, 'i
   );
 }
 
-function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateToView, onEditEntry, onUpdateEntry, onAddEntry, onReorderEntries }: GridViewProps) {
+function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateToView, onEditEntry, onUpdateEntry, onAddEntry, onReorderEntries, onSignOut, onNavigateToProfile }: GridViewProps) {
   const [localEntries, setLocalEntries] = useState(entries);
   const localEntriesRef = useRef(entries);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
@@ -413,6 +416,13 @@ function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateTo
         <button className={`${responsive.navButtonSize} ${isMobile || isTablet ? 'scale-75' : ''}`}>
           <Group2 />
         </button>
+
+        {/* Profile Menu */}
+        <ProfileMenu
+          buttonSize={responsive.navButtonSize}
+          onSignOut={onSignOut}
+          onNavigateToProfile={onNavigateToProfile}
+        />
       </div>
 
       {/* Filter buttons */}

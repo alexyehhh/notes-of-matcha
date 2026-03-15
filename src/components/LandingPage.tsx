@@ -9,6 +9,7 @@ import { useResponsive } from '../hooks/useResponsive';
 // import imgRectangle16 from "figma:asset/e1d39a1e66254ce927156619bbbe9078d9bda195.png";
 // import matchaImage from '../assets/rocky-matcha.png';
 import Frame40 from '../imports/Frame40';
+import { ProfileMenu } from './ProfileMenu';
 import Group2 from '../imports/Group2';
 import { Trash2 } from 'lucide-react';
 
@@ -20,9 +21,11 @@ interface LandingPageProps {
   onEditEntry: (entryId: string) => void;
   onAddEntry: (entry: Omit<MatchaEntry, 'id'>) => Promise<string>;
   onDeleteEntry: (entryId: string) => void;
+  onSignOut: () => void;
+  onNavigateToProfile: () => void;
 }
 
-export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateToView, onEditEntry, onAddEntry, onDeleteEntry }: LandingPageProps) {
+export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateToView, onEditEntry, onAddEntry, onDeleteEntry, onSignOut, onNavigateToProfile }: LandingPageProps) {
   const [hoveredImageIndex, setHoveredImageIndex] = useState<number | null>(null);
   const touchStartRef = useRef<number | null>(null);
   const [, setWindowSize] = useState({ width: typeof window !== 'undefined' ? window.innerWidth : 1200, height: typeof window !== 'undefined' ? window.innerHeight : 800 });
@@ -307,6 +310,13 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
         >
           <Group2 />
         </button>
+
+        {/* Profile Menu */}
+        <ProfileMenu
+          buttonSize={responsive.navButtonSize}
+          onSignOut={onSignOut}
+          onNavigateToProfile={onNavigateToProfile}
+        />
       </div>
 
       {/* Carousel Indicators - Only show when there are entries */}
