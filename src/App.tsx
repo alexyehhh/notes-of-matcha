@@ -14,12 +14,13 @@ import type { MatchaEntry, ViewType } from "./types";
 import { Toaster } from 'sonner';
 import { toast } from 'sonner';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { ProfilePage } from './components/ProfilePage';
 import { FullPageLoader } from './components/LoadingSpinner';
 import * as matchaApi from './services/matchaApi';
 
 export default function App() {
   const didInit = useRef(false);
-  const { user, isLoading: isAuthLoading } = useAuth();
+  const { user, isLoading: isAuthLoading, signOut } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('landing');
   const [previousView, setPreviousView] = useState<ViewType>('landing');
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
@@ -162,6 +163,10 @@ export default function App() {
     }
   }, []);
 
+  const handleSignOut = useCallback(async () => {
+    await signOut();
+  }, [signOut]);
+
   const addMatchaEntry = useCallback(async (entry: Omit<MatchaEntry, 'id'>) => {
     try {
       setIsDataPersisted(false);
@@ -263,6 +268,10 @@ export default function App() {
 
     confirmAndNavigate(doNavigation);
   }, [currentView, confirmAndNavigate]);
+
+  const handleNavigateToProfile = useCallback(() => {
+    navigateToView('profile');
+  }, [navigateToView]);
 
   const navigateToEditableView = useCallback((entryId: string) => {
     const entryIndex = matchaEntries.findIndex(e => e.id === entryId);
@@ -391,7 +400,7 @@ export default function App() {
 
   // Get transition direction for smoother animations
   const getTransitionDirection = () => {
-    const viewOrder: ViewType[] = ['landing', 'editable', 'grid', 'list', 'secret'];
+    const viewOrder: ViewType[] = ['landing', 'editable', 'grid', 'list', 'secret', 'profile'];
     const currentIndex = viewOrder.indexOf(currentView);
     const previousIndex = viewOrder.indexOf(previousView);
     return currentIndex > previousIndex ? 1 : -1;
@@ -403,7 +412,10 @@ export default function App() {
   }
 
   if (!user) {
-    return <AuthPage />;
+    return <>
+      <AuthPage />
+      <Toaster position="top-right" />
+    </>;
   }
 
   return (
@@ -489,6 +501,8 @@ export default function App() {
               onEditEntry={navigateToEditableView}
               onAddEntry={addMatchaEntry}
               onDeleteEntry={deleteMatchaEntry}
+              onSignOut={handleSignOut}
+              onNavigateToProfile={handleNavigateToProfile}
             />
           )}
 
@@ -516,6 +530,8 @@ export default function App() {
               onUpdateEntry={updateMatchaEntry}
               onAddEntry={addMatchaEntry}
               onReorderEntries={reorderMatchaEntries}
+              onSignOut={handleSignOut}
+              onNavigateToProfile={handleNavigateToProfile}
             />
           )}
           
@@ -528,6 +544,15 @@ export default function App() {
               onEditEntry={navigateToEditableView}
               onUpdateEntry={updateMatchaEntry}
               onAddEntry={addMatchaEntry}
+              onSignOut={handleSignOut}
+              onNavigateToProfile={handleNavigateToProfile}
+            />
+          )}
+
+          {currentView === 'profile' && (
+            <ProfilePage
+              onNavigateToView={navigateToView}
+              onSignOut={handleSignOut}
             />
           )}
 
