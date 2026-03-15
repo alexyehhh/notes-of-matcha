@@ -29,7 +29,7 @@ export default function App() {
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [, setIsDataPersisted] = useState(true);
   const [, setLastSaveTime] = useState<Date>(new Date());
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [, setLoadError] = useState<string | null>(null);
   
   const pendingNavigationRef = useRef<(() => void) | null>(null);
