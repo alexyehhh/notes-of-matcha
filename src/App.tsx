@@ -42,6 +42,7 @@ export default function App() {
     if (!user) {
       didInit.current = false;
       setMatchaEntries([]);
+      setCurrentView('landing');
       return;
     }
     if (didInit.current) return;
