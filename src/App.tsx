@@ -7,8 +7,6 @@ import { EditablePage } from './components/EditablePage';
 import { GridView } from './components/GridView';
 import { ListView } from './components/ListView';
 import { SecretPage } from './components/SecretPage';
-import rockyImage from './assets/rocky-matcha.png';
-import wakatakeImage from './assets/wakatake.jpeg';
 import type { MatchaEntry, ViewType } from "./types";
 
 import { Toaster } from 'sonner';
@@ -36,95 +34,39 @@ export default function App() {
   
   const pendingNavigationRef = useRef<(() => void) | null>(null);
 
-  // Default entries to seed the database if empty
-  const defaultEntries: MatchaEntry[] = [
-    {
-      id: '1',
-      name: 'Ceremonial Blend',
-      brand: 'Rocky\'s',
-      prefecture: 'Kyoto',
-      flavorProfile: { grassy: true, nutty: false, floral: false },
-      tasteAnalysis: { sweetness: 6, bitterness: 8, green: 10, umami: 8, astringency: 6 },
-      notes: 'Premium ceremonial grade matcha with rich umami flavor.',
-      color: '#3e6f2c',
-      image: rockyImage,
-      favorite: false
-    },
-    {
-      id: '2',
-      name: '若竹 (Wakataké)',
-      brand: 'Marukyu Koyamaen',
-      prefecture: 'Uji, Kyoto',
-      flavorProfile: { grassy: true, nutty: false, floral: true },
-      tasteAnalysis: { sweetness: 7, bitterness: 6, green: 9, umami: 9, astringency: 5 },
-      notes: 'Premium ceremonial grade matcha with delicate floral notes and rich umami. "Young Bamboo" represents freshness and purity in traditional Japanese tea culture.',
-      color: '#4a7c2a',
-      image: wakatakeImage,
-      favorite: true
-    },
-    {
-      id: '3',
-      name: 'Daily Matcha',
-      brand: 'Everyday',
-      prefecture: 'Kagoshima',
-      flavorProfile: { grassy: false, nutty: true, floral: false },
-      tasteAnalysis: { sweetness: 8, bitterness: 4, green: 6, umami: 6, astringency: 4 },
-      notes: 'Great for daily consumption with mild taste.',
-      color: '#8fca55',
-      favorite: false
-    },
-    {
-      id: '4',
-      name: 'Organic Matcha',
-      brand: 'Natural',
-      prefecture: 'Mie',
-      flavorProfile: { grassy: true, nutty: false, floral: true },
-      tasteAnalysis: { sweetness: 6, bitterness: 6, green: 8, umami: 6, astringency: 6 },
-      notes: 'Organically grown with floral notes.',
-      color: '#377a10',
-      favorite: false
-    },
-    {
-      id: '5',
-      name: 'Artisan Select',
-      brand: 'Craft',
-      prefecture: 'Nara',
-      flavorProfile: { grassy: false, nutty: true, floral: true },
-      tasteAnalysis: { sweetness: 10, bitterness: 4, green: 6, umami: 8, astringency: 4 },
-      notes: 'Hand-picked with complex flavor profile.',
-      color: '#adc44f',
-      favorite: true
-    }
-  ];
 
   const [matchaEntries, setMatchaEntries] = useState<MatchaEntry[]>([]);
 
-  // Load data from backend on mount
+  // Load data from backend once user is authenticated
   useEffect(() => {
-  if (didInit.current) return;
-  didInit.current = true;
-
-  const loadData = async () => {
-    try {
-      setIsLoading(true);
-      setLoadError(null);
-
-      const entries = await matchaApi.seedIfEmpty(defaultEntries);
-      setMatchaEntries(entries);
-
-      setLastSaveTime(new Date());
-    } catch (error) {
-      console.error("Failed to load matcha entries:", error);
-      setLoadError(error instanceof Error ? error.message : "Failed to load data");
-      setMatchaEntries(defaultEntries);
-      toast.info("Running in offline mode - data is saved locally");
-    } finally {
-      setIsLoading(false);
+    if (!user) {
+      didInit.current = false;
+      setMatchaEntries([]);
+      return;
     }
-  };
+    if (didInit.current) return;
+    didInit.current = true;
 
-  loadData();
-  }, []);
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        setLoadError(null);
+
+        const entries = await matchaApi.fetchMatchaEntries();
+        setMatchaEntries(entries);
+
+        setLastSaveTime(new Date());
+      } catch (error) {
+        console.error("Failed to load matcha entries:", error);
+        setLoadError(error instanceof Error ? error.message : "Failed to load data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, [user]);
+
 
 
   const updateMatchaEntry = useCallback(async (id: string, updates: Partial<MatchaEntry>) => {
