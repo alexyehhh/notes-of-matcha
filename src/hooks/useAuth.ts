@@ -37,13 +37,54 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email: string, password: string, name: string, username: string) => {
+    // Check username is not already taken
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('username', username)
+      .maybeSingle();
+
+    if (existing) {
+      return { data: null, error: new Error('Username is already taken') };
+    }
+
     const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error || !data.user) return { data, error };
+
+    // Set session so the update runs as authenticated user
+    if (data.session) {
+      await supabase.auth.setSession(data.session);
+    }
+    // Wait briefly for trigger to create profile row
+    await new Promise(resolve => setTimeout(resolve, 500));
+    await supabase
+      .from('profiles')
+      .update({ name, username, email })
+      .eq('id', data.user.id);
+
     return { data, error };
   };
 
   const signIn = async (email: string, password: string) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    return { data, error };
+  };
+
+  const signInWithUsername = async (username: string, password: string) => {
+    // Look up email from profiles table
+    const { data: profile, error: profileError } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('username', username)
+      .maybeSingle();
+
+    if (profileError || !profile?.email) {
+      return { data: null, error: new Error('Incorrect username or password') };
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({ email: profile.email, password });
+    if (error) return { data: null, error: new Error('Incorrect username or password') };
     return { data, error };
   };
 
@@ -58,6 +99,7 @@ export function useAuth() {
     isLoading: authState.isLoading,
     signUp,
     signIn,
+    signInWithUsername,
     signOut,
   };
 }
