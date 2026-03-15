@@ -46,20 +46,6 @@ export async function fetchMatchaEntries(): Promise<MatchaEntry[]> {
   return (data ?? []).map(rowToEntry);
 }
 
-// ─── Seed ────────────────────────────────────────────────────────────────────
-
-export async function seedIfEmpty(defaultEntries: MatchaEntry[]): Promise<MatchaEntry[]> {
-  const existing = await fetchMatchaEntries();
-  if (existing.length > 0) return existing;
-
-  // Insert all default entries with explicit sort_order
-  for (let i = 0; i < defaultEntries.length; i++) {
-    await createMatchaEntry(defaultEntries[i], i);
-  }
-
-  return fetchMatchaEntries();
-}
-
 // ─── Create ──────────────────────────────────────────────────────────────────
 
 export async function createMatchaEntry(entry: MatchaEntry, sortOrder?: number): Promise<MatchaEntry> {
