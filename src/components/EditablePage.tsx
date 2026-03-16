@@ -8,6 +8,7 @@ import { InteractiveRadarChart } from './InteractiveRadarChart';
 import { useResponsive } from '../hooks/useResponsive';
 
 import { ColorPicker } from './ColorPicker';
+import { ProfileMenu } from './ProfileMenu';
 import svgPaths from '../imports/svg-6owz6pfb8x';
 import svgPathsFrame27 from '../imports/svg-tkzjn83enc';
 // import imgRectangle3 from "figma:asset/dc6fd5a4a8fa791d2e308774ae9cdd5d0400c792.png";
@@ -24,9 +25,10 @@ interface EditablePageProps {
   onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => void;
   onNavigateToView: (view: ViewType) => void;
   onSwitchToEntry: (entryIndex: number) => void;
+  onSignOut: () => void;
 }
 
-export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, onNavigateToView, onSwitchToEntry }: EditablePageProps) {
+export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, onNavigateToView, onSwitchToEntry, onSignOut }: EditablePageProps) {
   const [isTranslating, setIsTranslating] = useState(false);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -331,13 +333,13 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
 
       {/* Navigation Icons */}
       <div className={`absolute ${responsive.navTop} ${responsive.navRight} flex gap-[8px] z-10`}>
-        {/* Back Button */}
+        {/* Home Button */}
         <button 
           onClick={() => onNavigateToView('landing')}
           className={`bg-[#342209] rounded-[2.679px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
         >
-          <svg className={`${isMobile ? 'w-[12px] h-[9px]' : isTablet ? 'w-[15px] h-[11px]' : 'w-[17px] h-[12px]'}`} fill="none" viewBox="0 0 32 24">
-            <path d={svgPaths.p20511b00} stroke="white" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+          <svg className={`${isMobile ? 'w-[12px] h-[12px]' : isTablet ? 'w-[14px] h-[14px]' : 'w-[16px] h-[16px]'}`} fill="none" viewBox="0 0 24 24" stroke="#eddecf" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
         </button>
 
@@ -363,6 +365,13 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
         >
           <Group2 />
         </button>
+
+        {/* Profile Menu */}
+        <ProfileMenu
+          buttonSize={responsive.navButtonSize}
+          onSignOut={onSignOut}
+          onNavigateToProfile={() => onNavigateToView('profile')}
+        />
       </div>
 
       {/* Carousel Indicators - showing active entry */}
