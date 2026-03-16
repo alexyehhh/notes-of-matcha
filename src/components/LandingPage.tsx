@@ -566,25 +566,32 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
                       alt={imageData.entry?.name || 'Matcha'}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        // Hide the failed image and show Frame40
+                        // Immediately hide the broken image
                         e.currentTarget.style.display = 'none';
-                        const frameContainer = e.currentTarget.nextElementSibling as HTMLElement;
-                        if (frameContainer) {
-                          frameContainer.style.display = 'block';
+                        const parent = e.currentTarget.parentElement;
+                        if (parent) {
+                          // Hide the entire image container and show fallback
+                          parent.style.display = 'none';
+                          const fallback = parent.nextElementSibling as HTMLElement;
+                          if (fallback) {
+                            fallback.style.display = 'block';
+                          }
                         }
                       }}
+                      style={{ display: 'block' }}
                     />
-                    <div className="absolute inset-0 hidden">
-                      <Frame40 />
-                    </div>
                   </div>
-                ) : (
-                  <div className={`w-full h-full transition-all duration-300 ${
+                ) : null}
+                
+                {/* Frame40 Fallback - shown when no image or image fails */}
+                <div 
+                  className={`w-full h-full transition-all duration-300 ${
                     hoveredImageIndex === imageData.index ? 'blur-sm opacity-70' : ''
-                  }`}>
-                    <Frame40 />
-                  </div>
-                )}
+                  }`}
+                  style={{ display: imageData.src ? 'none' : 'block' }}
+                >
+                  <Frame40 />
+                </div>
                 
                 {/* Hover Overlay */}
                 <AnimatePresence>
