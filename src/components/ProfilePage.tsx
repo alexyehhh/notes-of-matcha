@@ -147,15 +147,7 @@ export function ProfilePage({ onNavigateToView }: ProfilePageProps) {
         className="w-full max-w-sm"
       >
         {/* Header */}
-        <div className="flex items-center gap-3 mb-8">
-          <button
-            onClick={() => onNavigateToView('landing')}
-            className="w-8 h-8 bg-[#342209] rounded-[2.679px] flex items-center justify-center hover:bg-[#4a2f0d] transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#eddecf" strokeWidth="2">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
+        <div className="flex items-center justify-center mb-8">
           <h1 className="text-2xl text-[#342209] tracking-[-1px]">Profile</h1>
         </div>
 
