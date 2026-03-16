@@ -3,14 +3,8 @@ import { motion } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'sonner';
-import type { ViewType } from '../types';
 
-interface ProfilePageProps {
-  onNavigateToView: (view: ViewType) => void;
-  onSignOut: () => void;
-}
-
-export function ProfilePage({ onNavigateToView }: ProfilePageProps) {
+export function ProfilePage() {
   const { user } = useAuth();
 
   // Original values to detect changes
