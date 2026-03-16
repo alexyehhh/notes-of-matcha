@@ -9,7 +9,6 @@ import { useResponsive } from '../hooks/useResponsive';
 
 import { ColorPicker } from './ColorPicker';
 import { ProfileMenu } from './ProfileMenu';
-import svgPaths from '../imports/svg-6owz6pfb8x';
 import svgPathsFrame27 from '../imports/svg-tkzjn83enc';
 // import imgRectangle3 from "figma:asset/dc6fd5a4a8fa791d2e308774ae9cdd5d0400c792.png";
 // import imgRectangle15 from "figma:asset/cc2e29cb7decd5e1b94615650ce7e42071d9c94a.png";
