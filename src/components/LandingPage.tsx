@@ -372,7 +372,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
           {entries.length === 0 && (
             <motion.button
               onClick={() => handleCarouselClick(0, true)}
-              className="absolute rounded-[7px] overflow-hidden cursor-pointer"
+              className="absolute rounded-[7px] overflow-hidden cursor-pointer outline-none focus:outline-none"
               style={{
                 width: `${responsive.centerWidth}px`,
                 height: `${responsive.centerHeight}px`,
@@ -438,7 +438,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
                 <motion.button
                   key={`new-entry-${imageData.position}`}
                   onClick={() => handleCarouselClick(imageData.index, true)}
-                  className="absolute rounded-[7px] overflow-hidden cursor-pointer"
+                  className="absolute rounded-[7px] overflow-hidden cursor-pointer outline-none focus:outline-none"
                   style={{
                     width: `${width}px`,
                     height: `${height}px`,
@@ -485,7 +485,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
                 <motion.button
                   key={`${imageData.index}-${imageData.position}`}
                   onClick={() => handleCarouselClick(imageData.index)}
-                  className="absolute rounded-[7px] overflow-hidden cursor-pointer"
+                  className="absolute rounded-[7px] overflow-hidden cursor-pointer outline-none focus:outline-none"
                   style={{
                     width: `${width}px`,
                     height: `${height}px`,
@@ -526,7 +526,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
                 onClick={() => handleCarouselClick(imageData.index)}
                 onMouseEnter={() => setHoveredImageIndex(imageData.index)}
                 onMouseLeave={() => setHoveredImageIndex(null)}
-                className="absolute rounded-[7px] overflow-hidden border-[2.52px] border-[#c2b7ab] border-solid cursor-pointer"
+                className="absolute rounded-[7px] overflow-hidden border-[2.52px] border-[#c2b7ab] border-solid cursor-pointer outline-none focus:outline-none"
                 style={{
                   width: `${width}px`,
                   height: `${height}px`,
