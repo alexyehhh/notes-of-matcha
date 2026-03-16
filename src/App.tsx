@@ -460,6 +460,7 @@ export default function App() {
               }}
               onNavigateToView={navigateToView}
               onSwitchToEntry={switchToEntry}
+              onSignOut={handleSignOut}
             />
           )}
           
@@ -493,10 +494,7 @@ export default function App() {
           )}
 
           {currentView === 'profile' && (
-            <ProfilePage
-              onNavigateToView={navigateToView}
-              onSignOut={handleSignOut}
-            />
+            <ProfilePage />
           )}
 
           {currentView === 'secret' && (
