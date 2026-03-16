@@ -124,20 +124,22 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
     setIsProcessingImage(true);
     
     try {
-      // Create object URL for display and save immediately (images are saved immediately)
-      const imageUrl = URL.createObjectURL(file);
-      setIsSaving(true);
-      onUpdateEntry(entry.id, { image: imageUrl });
-      setTimeout(() => setIsSaving(false), 300);
+      // Convert image to base64 data URL for persistent storage
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        const base64Image = e.target?.result as string;
+        setIsSaving(true);
+        onUpdateEntry(entry.id, { image: base64Image });
+        setTimeout(() => setIsSaving(false), 300);
 
-      // Show upload success toast
-      toast.success("Image uploaded successfully", {
-        duration: 2000,
-        style: {
-          background: '#342209',
-          color: '#fff9f3',
-          border: '1px solid #7CB342',
-          borderRadius: '6px',
+        // Show upload success toast
+        toast.success("Image uploaded successfully", {
+          duration: 2000,
+          style: {
+            background: '#342209',
+            color: '#fff9f3',
+            border: '1px solid #7CB342',
+            borderRadius: '6px',
           fontFamily: 'Syne, sans-serif',
         },
       });
@@ -166,6 +168,24 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
           fontFamily: 'Syne, sans-serif',
         },
       });
+      };
+
+      reader.onerror = () => {
+        setIsProcessingImage(false);
+        toast.error("Failed to read image file", {
+          duration: 3000,
+          style: {
+            background: '#342209',
+            color: '#fff9f3',
+            border: '1px solid #d4183d',
+            borderRadius: '6px',
+            fontFamily: 'Syne, sans-serif',
+          },
+        });
+      };
+
+      // Read the file as base64 data URL
+      reader.readAsDataURL(file);
       
     } catch (error) {
       console.error('Error processing image:', error);
