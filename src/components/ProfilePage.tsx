@@ -3,9 +3,17 @@ import { motion } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'sonner';
+import { ProfileMenu } from './ProfileMenu';
+import { useResponsive } from '../hooks/useResponsive';
 
-export function ProfilePage() {
+interface ProfilePageProps {
+  onNavigateToView: (view: 'landing' | 'profile') => void;
+  onSignOut: () => void;
+}
+
+export function ProfilePage({ onNavigateToView, onSignOut }: ProfilePageProps) {
   const { user } = useAuth();
+  const { isMobile, isTablet } = useResponsive();
 
   // Original values to detect changes
   const [originalName, setOriginalName] = useState('');
@@ -15,12 +23,16 @@ export function ProfilePage() {
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [isCurrentPasswordValid, setIsCurrentPasswordValid] = useState(false);
+  const [isVerifyingCurrentPassword, setIsVerifyingCurrentPassword] = useState(false);
 
   // Load existing profile data and sync confirmed auth email into profile
   useEffect(() => {
@@ -90,11 +102,54 @@ export function ProfilePage() {
     username !== originalUsername ||
     email !== originalEmail;
 
-  const hasPasswordChanges = newPassword.length > 0 || confirmPassword.length > 0;
+  const hasPasswordChanges =
+    currentPassword.length > 0 || newPassword.length > 0 || confirmPassword.length > 0;
   const showSaveButton = hasProfileChanges || hasPasswordChanges;
+
+  const verifyCurrentPassword = useCallback(async (options?: { silent?: boolean }) => {
+    if (!user?.email || !currentPassword) {
+      setIsCurrentPasswordValid(false);
+      return false;
+    }
+
+    setIsVerifyingCurrentPassword(true);
+    const { error } = await supabase.auth.signInWithPassword({
+      email: user.email,
+      password: currentPassword,
+    });
+    setIsVerifyingCurrentPassword(false);
+
+    if (error) {
+      setIsCurrentPasswordValid(false);
+      if (!options?.silent) {
+        toast.error('Current password is incorrect');
+      }
+      return false;
+    }
+
+    setIsCurrentPasswordValid(true);
+    return true;
+  }, [user?.email, currentPassword]);
 
   const handleSave = useCallback(async () => {
     if (!user) return;
+
+    if ((newPassword || confirmPassword) && !currentPassword) {
+      toast.error('Please enter your current password');
+      return;
+    }
+
+    if (currentPassword && !newPassword && !confirmPassword) {
+      const verified = await verifyCurrentPassword();
+      if (!verified) return;
+      toast.success('Current password verified');
+      return;
+    }
+
+    if ((newPassword || confirmPassword) && !isCurrentPasswordValid) {
+      const verified = await verifyCurrentPassword();
+      if (!verified) return;
+    }
 
     if (newPassword && newPassword !== confirmPassword) {
       toast.error('Passwords do not match');
@@ -131,10 +186,23 @@ export function ProfilePage() {
 
       // Update password if provided
       if (newPassword) {
+        if (!user.email) {
+          throw new Error('Missing email for password verification');
+        }
+
+        const { error: reauthError } = await supabase.auth.signInWithPassword({
+          email: user.email,
+          password: currentPassword,
+        });
+        if (reauthError) throw reauthError;
+
         const { error: passwordError } = await supabase.auth.updateUser({ password: newPassword });
         if (passwordError) throw passwordError;
+        setCurrentPassword('');
         setNewPassword('');
         setConfirmPassword('');
+        setIsCurrentPasswordValid(false);
+        toast.success('Password successfully changed');
       }
 
       // Update originals to reflect saved state
@@ -142,7 +210,7 @@ export function ProfilePage() {
       setOriginalUsername(username);
       setOriginalEmail(email);
 
-      if (!didRequestEmailChange) {
+      if (!didRequestEmailChange && !hasPasswordChanges) {
         toast.success('Profile updated successfully', {
           style: {
             background: '#342209',
@@ -158,10 +226,42 @@ export function ProfilePage() {
     } finally {
       setIsSaving(false);
     }
-  }, [user, name, username, email, newPassword, confirmPassword, originalName, originalUsername, originalEmail]);
+  }, [user, name, username, email, newPassword, confirmPassword, originalName, originalUsername, originalEmail, isCurrentPasswordValid, verifyCurrentPassword, currentPassword]);
 
   const inputClass = "w-full px-4 py-3 rounded-lg bg-transparent border border-[#c2b7ab] text-[#342209] text-sm outline-none focus:border-[#7CB342] focus:ring-1 focus:ring-[#7CB342] transition-colors placeholder:text-[#342209]/30 font-['Syne']";
   const labelClass = "text-xs text-[#342209]/60 mb-1.5 block tracking-wide uppercase font-['Syne']";
+  const getResponsiveValues = () => {
+    if (isMobile) {
+      return {
+        headerTop: 'top-6',
+        headerFontSize: 'text-[20px]',
+        navTop: 'top-[28px]',
+        navRight: 'right-4',
+        navButtonSize: 'w-[24px] h-[24px]',
+        navIconSize: 'w-[12px] h-[12px]',
+      };
+    }
+    if (isTablet) {
+      return {
+        headerTop: 'top-8',
+        headerFontSize: 'text-[24px]',
+        navTop: 'top-[36px]',
+        navRight: 'right-8',
+        navButtonSize: 'w-[28px] h-[28px]',
+        navIconSize: 'w-[14px] h-[14px]',
+      };
+    }
+    return {
+      headerTop: 'top-12',
+      headerFontSize: 'text-[30px]',
+      navTop: 'top-[52px]',
+      navRight: 'right-[66px]',
+      navButtonSize: 'w-[31.481px] h-[31.481px]',
+      navIconSize: 'w-[16px] h-[16px]',
+    };
+  };
+
+  const responsive = getResponsiveValues();
 
   const EyeIcon = ({ visible }: { visible: boolean }) => (
     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#342209" strokeWidth="1.8">
@@ -179,7 +279,31 @@ export function ProfilePage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#eddecf] flex items-center justify-center p-6 font-['Syne']">
+    <div className="min-h-screen bg-[#eddecf] flex items-center justify-center p-6 font-['Syne'] relative">
+      <div className={`absolute ${responsive.headerTop} left-1/2 transform -translate-x-1/2 z-10`}>
+        <div className={`font-['Syne'] font-normal ${responsive.headerFontSize} text-[#342209] tracking-[-2.4px]`}>
+          Notes of Matcha
+        </div>
+      </div>
+      <div className={`absolute ${responsive.navTop} ${responsive.navRight} flex items-center gap-[8px] z-10`}>
+        <button
+          onClick={() => onNavigateToView('landing')}
+          className={`bg-[#342209] rounded-[2.679px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
+          aria-label="Go to home"
+        >
+          <svg className={responsive.navIconSize} fill="none" viewBox="0 0 24 24" stroke="#eddecf" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        </button>
+
+        <ProfileMenu
+          buttonSize={responsive.navButtonSize}
+          onSignOut={onSignOut}
+          onNavigateToProfile={() => {}}
+          disableProfile={true}
+        />
+      </div>
+
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -238,9 +362,38 @@ export function ProfilePage() {
 
             {/* Password section */}
             <div className="border-t border-[#d7cbbd] pt-2">
-              <p className="text-xs text-[#342209]/50 mb-3">Change password (leave blank to keep current)</p>
-
               <div className="flex flex-col gap-4">
+                <p className="text-xs text-[#342209]/50 uppercase tracking-wide text-center">Change password</p>
+
+                {/* Current Password */}
+                <div>
+                  <label className={labelClass}>Current Password</label>
+                  <div className="relative">
+                    <input
+                      type={showCurrentPassword ? 'text' : 'password'}
+                      value={currentPassword}
+                      onChange={(e) => {
+                        setCurrentPassword(e.target.value);
+                        setIsCurrentPasswordValid(false);
+                      }}
+                      onBlur={() => {
+                        if (currentPassword) {
+                          verifyCurrentPassword({ silent: true });
+                        }
+                      }}
+                      placeholder="••••••••"
+                      className={`${inputClass} pr-10`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(prev => !prev)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100 transition-opacity"
+                    >
+                      <EyeIcon visible={showCurrentPassword} />
+                    </button>
+                  </div>
+                </div>
+
                 {/* New Password */}
                 <div>
                   <label className={labelClass}>New Password</label>
@@ -251,11 +404,13 @@ export function ProfilePage() {
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="••••••••"
                       className={`${inputClass} pr-10`}
+                      disabled={!isCurrentPasswordValid || isVerifyingCurrentPassword}
                     />
                     <button
                       type="button"
                       onClick={() => setShowNewPassword(prev => !prev)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100 transition-opacity"
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 transition-opacity ${isCurrentPasswordValid ? 'opacity-50 hover:opacity-100' : 'opacity-30 cursor-not-allowed'}`}
+                      disabled={!isCurrentPasswordValid || isVerifyingCurrentPassword}
                     >
                       <EyeIcon visible={showNewPassword} />
                     </button>
@@ -272,11 +427,13 @@ export function ProfilePage() {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="••••••••"
                       className={`${inputClass} pr-10`}
+                      disabled={!isCurrentPasswordValid || isVerifyingCurrentPassword}
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(prev => !prev)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100 transition-opacity"
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 transition-opacity ${isCurrentPasswordValid ? 'opacity-50 hover:opacity-100' : 'opacity-30 cursor-not-allowed'}`}
+                      disabled={!isCurrentPasswordValid || isVerifyingCurrentPassword}
                     >
                       <EyeIcon visible={showConfirmPassword} />
                     </button>
@@ -286,7 +443,7 @@ export function ProfilePage() {
             </div>
           </div>
 
-          {/* Save button — only shown when there are changes */}
+          {/* Save/Verify button — only shown when there are changes */}
           {showSaveButton && (
             <motion.button
               onClick={handleSave}
@@ -301,7 +458,7 @@ export function ProfilePage() {
                   : 'bg-[#3e6f2c] text-[#fff9f3] hover:bg-[#5e9526] cursor-pointer'
               }`}
             >
-              {isSaving ? 'Saving...' : 'Save Changes'}
+              {isSaving ? 'Saving...' : hasPasswordChanges && !isCurrentPasswordValid ? 'Verify' : 'Save Changes'}
             </motion.button>
           )}
         </div>
