@@ -26,17 +26,17 @@ export function ProfilePage() {
   useEffect(() => {
     if (!user) return;
     const loadProfile = async () => {
-      const { data } = await supabase
+      const { data: profileData } = await supabase
         .from('profiles')
         .select('name, username, email')
         .eq('id', user.id)
         .single();
 
-      const loadedName = data?.name ?? '';
-      const loadedUsername = data?.username ?? '';
-      let loadedEmail = data?.email ?? user.email ?? '';
+      const loadedName = profileData?.name ?? '';
+      const loadedUsername = profileData?.username ?? '';
+      let loadedEmail = profileData?.email ?? user.email ?? '';
 
-      if (user.email && data?.email !== user.email) {
+      if (user.email && profileData?.email !== user.email) {
         const { error: syncError } = await supabase
           .from('profiles')
           .update({ email: user.email })
@@ -58,6 +58,40 @@ export function ProfilePage() {
     };
     loadProfile();
   }, [user, pendingEmail]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const refreshFromAuth = async () => {
+      const { data } = await supabase.auth.getUser();
+      const freshEmail = data.user?.email;
+      if (!freshEmail || freshEmail === originalEmail) return;
+
+      const { error: syncError } = await supabase
+        .from('profiles')
+        .update({ email: freshEmail })
+        .eq('id', user.id);
+      if (syncError) return;
+
+      setEmail(freshEmail);
+      setOriginalEmail(freshEmail);
+      if (pendingEmail === freshEmail) {
+        setPendingEmail(null);
+      }
+    };
+
+    const handleFocus = () => {
+      refreshFromAuth();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleFocus);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleFocus);
+    };
+  }, [user, originalEmail, pendingEmail]);
 
   const hasProfileChanges =
     name !== originalName ||
