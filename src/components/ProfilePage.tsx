@@ -26,24 +26,27 @@ export function ProfilePage() {
   useEffect(() => {
     if (!user) return;
     const loadProfile = async () => {
+      const { data: refreshed } = await supabase.auth.refreshSession();
+      const authUser = refreshed.session?.user ?? user;
+
       const { data: profileData } = await supabase
         .from('profiles')
         .select('name, username, email')
-        .eq('id', user.id)
+        .eq('id', authUser.id)
         .single();
 
       const loadedName = profileData?.name ?? '';
       const loadedUsername = profileData?.username ?? '';
-      let loadedEmail = profileData?.email ?? user.email ?? '';
+      let loadedEmail = profileData?.email ?? authUser.email ?? '';
 
-      if (user.email && profileData?.email !== user.email) {
+      if (authUser.email && profileData?.email !== authUser.email) {
         const { error: syncError } = await supabase
           .from('profiles')
-          .update({ email: user.email })
-          .eq('id', user.id);
+          .update({ email: authUser.email })
+          .eq('id', authUser.id);
         if (!syncError) {
-          loadedEmail = user.email;
-          if (pendingEmail === user.email) {
+          loadedEmail = authUser.email;
+          if (pendingEmail === authUser.email) {
             setPendingEmail(null);
           }
         }
@@ -63,6 +66,7 @@ export function ProfilePage() {
     if (!user) return;
 
     const refreshFromAuth = async () => {
+      await supabase.auth.refreshSession();
       const { data } = await supabase.auth.getUser();
       const freshEmail = data.user?.email;
       if (!freshEmail || freshEmail === originalEmail) return;
