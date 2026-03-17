@@ -20,8 +20,9 @@ export function ProfilePage() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
 
-  // Load existing profile data
+  // Load existing profile data and sync confirmed auth email into profile
   useEffect(() => {
     if (!user) return;
     const loadProfile = async () => {
@@ -33,7 +34,20 @@ export function ProfilePage() {
 
       const loadedName = data?.name ?? '';
       const loadedUsername = data?.username ?? '';
-      const loadedEmail = data?.email ?? user.email ?? '';
+      let loadedEmail = data?.email ?? user.email ?? '';
+
+      if (user.email && data?.email !== user.email) {
+        const { error: syncError } = await supabase
+          .from('profiles')
+          .update({ email: user.email })
+          .eq('id', user.id);
+        if (!syncError) {
+          loadedEmail = user.email;
+          if (pendingEmail === user.email) {
+            setPendingEmail(null);
+          }
+        }
+      }
 
       setName(loadedName);
       setUsername(loadedUsername);
@@ -43,7 +57,7 @@ export function ProfilePage() {
       setOriginalEmail(loadedEmail);
     };
     loadProfile();
-  }, [user]);
+  }, [user, pendingEmail]);
 
   const hasProfileChanges =
     name !== originalName ||
@@ -68,6 +82,8 @@ export function ProfilePage() {
 
     setIsSaving(true);
     try {
+      let didRequestEmailChange = false;
+
       // Update profile name and username
       if (name !== originalName || username !== originalUsername) {
         const { error: profileError } = await supabase
@@ -81,7 +97,9 @@ export function ProfilePage() {
       if (email !== originalEmail) {
         const { error: emailError } = await supabase.auth.updateUser({ email });
         if (emailError) throw emailError;
-        await supabase.from('profiles').update({ email }).eq('id', user.id);
+        setPendingEmail(email);
+        setOriginalEmail(email);
+        didRequestEmailChange = true;
         toast.success('Confirmation email sent to new address');
       }
 
@@ -98,15 +116,17 @@ export function ProfilePage() {
       setOriginalUsername(username);
       setOriginalEmail(email);
 
-      toast.success('Profile updated successfully', {
-        style: {
-          background: '#342209',
-          color: '#fff9f3',
-          border: '1px solid #7CB342',
-          borderRadius: '6px',
-          fontFamily: 'Syne, sans-serif',
-        },
-      });
+      if (!didRequestEmailChange) {
+        toast.success('Profile updated successfully', {
+          style: {
+            background: '#342209',
+            color: '#fff9f3',
+            border: '1px solid #7CB342',
+            borderRadius: '6px',
+            fontFamily: 'Syne, sans-serif',
+          },
+        });
+      }
     } catch (error: any) {
       toast.error(error.message ?? 'Failed to update profile');
     } finally {
@@ -183,6 +203,11 @@ export function ProfilePage() {
                 placeholder="you@example.com"
                 className={inputClass}
               />
+              {pendingEmail && pendingEmail !== user?.email && (
+                <p className="mt-1 text-[11px] text-[#342209]/60">
+                  Pending confirmation for {pendingEmail}.
+                </p>
+              )}
             </div>
 
             {/* Password section */}
