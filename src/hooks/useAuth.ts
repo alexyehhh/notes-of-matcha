@@ -50,7 +50,12 @@ export function useAuth() {
     }
 
     const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error || !data.user) return { data, error };
+    if (error || !data.user) {
+      if (error?.message?.toLowerCase().includes('already registered')) {
+        return { data: null, error: new Error('This email is already used by another user. Try logging in instead.') };
+      }
+      return { data, error };
+    }
 
     // Set session so the update runs as authenticated user
     if (data.session) {
