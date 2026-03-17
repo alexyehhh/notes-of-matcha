@@ -4,9 +4,10 @@ interface ProfileMenuProps {
   buttonSize: string;
   onSignOut: () => void;
   onNavigateToProfile: () => void;
+  disableProfile?: boolean;
 }
 
-export function ProfileMenu({ buttonSize, onSignOut, onNavigateToProfile }: ProfileMenuProps) {
+export function ProfileMenu({ buttonSize, onSignOut, onNavigateToProfile, disableProfile = false }: ProfileMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -43,8 +44,14 @@ export function ProfileMenu({ buttonSize, onSignOut, onNavigateToProfile }: Prof
       {isOpen && (
         <div className="absolute right-0 mt-1 w-[130px] bg-[#fff9f3] border border-[#c2b7ab] rounded-[6px] shadow-lg z-50 overflow-hidden">
           <button
-            onClick={() => { setIsOpen(false); onNavigateToProfile(); }}
-            className="w-full text-left px-4 py-2.5 font-['Syne'] text-[13px] text-[#342209] hover:bg-[#eddecf] transition-colors"
+            onClick={() => {
+              setIsOpen(false);
+              if (!disableProfile) onNavigateToProfile();
+            }}
+            disabled={disableProfile}
+            className={`w-full text-left px-4 py-2.5 font-['Syne'] text-[13px] text-[#342209] transition-colors ${
+              disableProfile ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#eddecf]'
+            }`}
           >
             Profile
           </button>
