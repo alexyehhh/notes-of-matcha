@@ -28,6 +28,9 @@ export function AuthPage() {
   const [signInUsername, setSignInUsername] = useState('');
   const [signInPassword, setSignInPassword] = useState('');
   const [showSignInPassword, setShowSignInPassword] = useState(false);
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
+  const [isResetting, setIsResetting] = useState(false);
 
   // Sign up fields
   const [signUpName, setSignUpName] = useState('');
@@ -37,7 +40,7 @@ export function AuthPage() {
   const [showSignUpPassword, setShowSignUpPassword] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { signInWithUsername, signUp } = useAuth();
+  const { signInWithUsername, signUp, requestPasswordReset } = useAuth();
 
   const handleSubmit = useCallback(async () => {
 
@@ -83,6 +86,25 @@ export function AuthPage() {
     if (e.key === 'Enter') handleSubmit();
   }, [handleSubmit]);
 
+  const handleResetSubmit = useCallback(async () => {
+    if (!resetEmail) {
+      toast.error('Please enter your email');
+      return;
+    }
+    setIsResetting(true);
+    try {
+      const { error } = await requestPasswordReset(resetEmail);
+      if (error) throw error;
+      toast.success('Check your email for a reset link');
+      setShowResetPassword(false);
+      setResetEmail('');
+    } catch (error: any) {
+      toast.error(error.message ?? 'Unable to send reset email');
+    } finally {
+      setIsResetting(false);
+    }
+  }, [requestPasswordReset, resetEmail]);
+
   return (
     <div className="min-h-screen bg-[#eddecf] flex items-center justify-center p-6 font-['Syne']">
       <motion.div
@@ -126,7 +148,7 @@ export function AuthPage() {
                     : 'text-[#342209]/50 hover:text-[#342209]/80'
                 }`}
               >
-                {m === 'signin' ? 'Sign In' : 'Sign Up'}
+                {m === 'signin' ? 'Log In' : 'Sign Up'}
               </button>
             ))}
           </div>
@@ -148,7 +170,7 @@ export function AuthPage() {
                     value={signInUsername}
                     onChange={(e) => setSignInUsername(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="username"
+                    placeholder="Username"
                     className={inputClass}
                   />
                 </div>
@@ -171,6 +193,49 @@ export function AuthPage() {
                       <EyeIcon visible={showSignInPassword} />
                     </button>
                   </div>
+                </div>
+                <div className="flex flex-col gap-3 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setShowResetPassword(prev => !prev)}
+                    className="text-left text-xs text-[#5e9526] hover:text-[#3e6f2c] transition-colors underline underline-offset-2"
+                  >
+                    Forgot your password?
+                  </button>
+                  <AnimatePresence>
+                    {showResetPassword ? (
+                      <motion.div
+                        key="reset"
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="flex flex-col gap-2 overflow-hidden"
+                      >
+                        <input
+                          type="email"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') handleResetSubmit();
+                          }}
+                          placeholder="you@example.com"
+                          className={inputClass}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleResetSubmit}
+                          disabled={isResetting}
+                          className={`w-full py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
+                            isResetting
+                              ? 'bg-[#7CB342]/50 text-white cursor-not-allowed'
+                              : 'bg-[#3e6f2c] text-[#fff9f3] hover:bg-[#5e9526] cursor-pointer'
+                          }`}
+                        >
+                          {isResetting ? 'Sending...' : 'Send reset email'}
+                        </button>
+                      </motion.div>
+                    ) : null}
+                  </AnimatePresence>
                 </div>
               </motion.div>
             ) : (
@@ -200,7 +265,7 @@ export function AuthPage() {
                     value={signUpUsername}
                     onChange={(e) => setSignUpUsername(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder="username"
+                    placeholder="Username"
                     className={inputClass}
                   />
                 </div>
@@ -270,7 +335,7 @@ export function AuthPage() {
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                 >
-                  {mode === 'signin' ? 'Sign In' : 'Create Account'}
+                  {mode === 'signin' ? 'Log in' : 'Create Account'}
                 </motion.span>
               )}
             </AnimatePresence>
@@ -283,7 +348,7 @@ export function AuthPage() {
               onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
               className="text-[#5e9526] hover:text-[#3e6f2c] transition-colors underline underline-offset-2"
             >
-              {mode === 'signin' ? 'Sign up' : 'Sign in'}
+              {mode === 'signin' ? 'Sign up' : 'Log In'}
             </button>
           </p>
         </div>
