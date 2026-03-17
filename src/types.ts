@@ -18,6 +18,7 @@ export interface MatchaEntry {
   notes: string;
   color: string;
   image?: string;
+  imagePath?: string;
   favorite: boolean;
 }
 
