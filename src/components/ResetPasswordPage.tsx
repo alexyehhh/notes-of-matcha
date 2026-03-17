@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
-import { ProfileMenu } from './ProfileMenu';
 import { useResponsive } from '../hooks/useResponsive';
 
 interface ResetPasswordPageProps {
@@ -166,25 +165,6 @@ export function ResetPasswordPage({ onNavigateToView, onSignOut }: ResetPassword
           Notes of Matcha
         </div>
       </div>
-      <div className={`absolute ${responsive.navTop} ${responsive.navRight} flex items-center gap-[8px] z-10`}>
-        <button
-          onClick={() => onNavigateToView('landing')}
-          className={`bg-[#342209] rounded-[2.679px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
-          aria-label="Go to home"
-        >
-          <svg className={responsive.navIconSize} fill="none" viewBox="0 0 24 24" stroke="#eddecf" strokeWidth="2">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-        </button>
-
-        <ProfileMenu
-          buttonSize={responsive.navButtonSize}
-          onSignOut={onSignOut}
-          onNavigateToProfile={() => {}}
-          disableProfile={true}
-        />
-      </div>
-
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
