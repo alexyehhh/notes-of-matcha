@@ -13,6 +13,7 @@ import { Toaster } from 'sonner';
 import { toast } from 'sonner';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { ProfilePage } from './components/ProfilePage';
+import { ResetPasswordPage } from './components/ResetPasswordPage';
 import { FullPageLoader } from './components/LoadingSpinner';
 import * as matchaApi from './services/matchaApi';
 import { resolveImageUrl, isStoragePath } from './lib/images';
@@ -39,7 +40,19 @@ export default function App() {
 
   const [matchaEntries, setMatchaEntries] = useState<MatchaEntry[]>([]);
 
+  const isRecoveryFlow = useCallback(() => {
+    const hash = window.location.hash ?? '';
+    if (hash.includes('type=recovery')) return true;
+    const search = window.location.search ?? '';
+    if (search.includes('type=recovery')) return true;
+    const path = window.location.pathname ?? '';
+    return path === '/reset-password';
+  }, []);
+
   const getViewFromLocation = useCallback((): { view: ViewType; entryId: string | null } => {
+    if (window.location.pathname === '/reset-password') {
+      return { view: 'reset', entryId: null };
+    }
     const rawHash = window.location.hash.replace('#', '');
     if (rawHash) {
       const [hashView, query] = rawHash.split('?');
@@ -47,7 +60,7 @@ export default function App() {
         const params = new URLSearchParams(query ?? '');
         return { view: 'editable', entryId: params.get('entryId') };
       }
-      if (hashView === 'landing' || hashView === 'grid' || hashView === 'list' || hashView === 'secret' || hashView === 'profile') {
+      if (hashView === 'landing' || hashView === 'grid' || hashView === 'list' || hashView === 'secret' || hashView === 'profile' || hashView === 'reset') {
         return { view: hashView, entryId: null };
       }
     }
@@ -57,7 +70,7 @@ export default function App() {
     if (storedView === 'editable') {
       return { view: 'editable', entryId: storedEntryId };
     }
-    if (storedView === 'landing' || storedView === 'grid' || storedView === 'list' || storedView === 'secret' || storedView === 'profile') {
+    if (storedView === 'landing' || storedView === 'grid' || storedView === 'list' || storedView === 'secret' || storedView === 'profile' || storedView === 'reset') {
       return { view: storedView, entryId: null };
     }
 
@@ -71,6 +84,11 @@ export default function App() {
   useEffect(() => {
     const applyHashView = () => {
       if (isAuthLoading) return;
+      if (isRecoveryFlow()) {
+        setCurrentView('reset');
+        setSelectedEntryId(null);
+        return;
+      }
       if (!user) {
         setCurrentView('landing');
         setSelectedEntryId(null);
@@ -99,7 +117,7 @@ export default function App() {
       window.removeEventListener('popstate', handleLocationChange);
       window.removeEventListener('hashchange', handleLocationChange);
     };
-  }, [getViewFromLocation, user, isAuthLoading]);
+  }, [getViewFromLocation, user, isAuthLoading, isRecoveryFlow]);
 
   // Load data from backend once user is authenticated
   useEffect(() => {
@@ -471,7 +489,7 @@ export default function App() {
 
   // Get transition direction for smoother animations
   const getTransitionDirection = () => {
-    const viewOrder: ViewType[] = ['landing', 'editable', 'grid', 'list', 'secret', 'profile'];
+    const viewOrder: ViewType[] = ['landing', 'editable', 'grid', 'list', 'secret', 'profile', 'reset'];
     const currentIndex = viewOrder.indexOf(currentView);
     const previousIndex = viewOrder.indexOf(previousView);
     return currentIndex > previousIndex ? 1 : -1;
@@ -479,7 +497,26 @@ export default function App() {
 
   // Show loading screen while fetching data
   if (isAuthLoading || isLoading) {
+    if (isRecoveryFlow()) {
+      return <>
+        <ResetPasswordPage
+          onNavigateToView={navigateToView}
+          onSignOut={handleSignOut}
+        />
+        <Toaster position="top-right" />
+      </>;
+    }
     return <FullPageLoader text={isAuthLoading ? "Loading..." : "Loading your matcha collection..."} />;
+  }
+
+  if (isRecoveryFlow()) {
+    return <>
+      <ResetPasswordPage
+        onNavigateToView={navigateToView}
+        onSignOut={handleSignOut}
+      />
+      <Toaster position="top-right" />
+    </>;
   }
 
   if (!user) {
@@ -623,6 +660,13 @@ export default function App() {
 
           {currentView === 'profile' && (
             <ProfilePage
+              onNavigateToView={navigateToView}
+              onSignOut={handleSignOut}
+            />
+          )}
+
+          {currentView === 'reset' && (
+            <ResetPasswordPage
               onNavigateToView={navigateToView}
               onSignOut={handleSignOut}
             />
