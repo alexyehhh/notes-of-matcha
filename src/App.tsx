@@ -22,6 +22,7 @@ export default function App() {
   const didInit = useRef(false);
   const entriesRef = useRef<MatchaEntry[]>([]);
   const { user, isLoading: isAuthLoading, signOut } = useAuth();
+  const prevUserRef = useRef<typeof user | null>(null);
   const [currentView, setCurrentView] = useState<ViewType>('landing');
   const [previousView, setPreviousView] = useState<ViewType>('landing');
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
@@ -76,6 +77,20 @@ export default function App() {
 
     return { view: 'landing', entryId: null };
   }, []);
+
+  useEffect(() => {
+    if (isAuthLoading) return;
+    const prevUser = prevUserRef.current;
+    if (!prevUser && user && !isRecoveryFlow()) {
+      setCurrentView('landing');
+      setPreviousView('landing');
+      setSelectedEntryId(null);
+      window.history.replaceState({ view: 'landing', entryId: null }, '', '#landing');
+      sessionStorage.setItem('nom:view', 'landing');
+      sessionStorage.removeItem('nom:entryId');
+    }
+    prevUserRef.current = user;
+  }, [user, isAuthLoading, isRecoveryFlow]);
 
   useEffect(() => {
     entriesRef.current = matchaEntries;
@@ -234,6 +249,8 @@ export default function App() {
 
   const handleSignOut = useCallback(async () => {
     await signOut();
+    sessionStorage.removeItem('nom:view');
+    sessionStorage.removeItem('nom:entryId');
   }, [signOut]);
 
   const addMatchaEntry = useCallback(async (entry: Omit<MatchaEntry, 'id'>) => {
