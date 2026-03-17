@@ -15,9 +15,11 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { ProfilePage } from './components/ProfilePage';
 import { FullPageLoader } from './components/LoadingSpinner';
 import * as matchaApi from './services/matchaApi';
+import { resolveImageUrl, isStoragePath } from './lib/images';
 
 export default function App() {
   const didInit = useRef(false);
+  const entriesRef = useRef<MatchaEntry[]>([]);
   const { user, isLoading: isAuthLoading, signOut } = useAuth();
   const [currentView, setCurrentView] = useState<ViewType>('landing');
   const [previousView, setPreviousView] = useState<ViewType>('landing');
@@ -36,6 +38,10 @@ export default function App() {
 
 
   const [matchaEntries, setMatchaEntries] = useState<MatchaEntry[]>([]);
+
+  useEffect(() => {
+    entriesRef.current = matchaEntries;
+  }, [matchaEntries]);
 
   // Load data from backend once user is authenticated
   useEffect(() => {
@@ -74,10 +80,18 @@ export default function App() {
     try {
       setIsDataPersisted(false);
       
+      const optimisticUpdates: Partial<MatchaEntry> = { ...updates };
+      if (updates.imagePath) {
+        optimisticUpdates.image = updates.image ?? await resolveImageUrl(updates.imagePath);
+      } else if (updates.image && isStoragePath(updates.image)) {
+        optimisticUpdates.imagePath = updates.image;
+        optimisticUpdates.image = await resolveImageUrl(updates.image);
+      }
+
       // Optimistic update
       setMatchaEntries(prev => {
         const newEntries = prev.map(entry => 
-          entry.id === id ? { ...entry, ...updates } : entry
+          entry.id === id ? { ...entry, ...optimisticUpdates } : entry
         );
         return newEntries;
       });
@@ -105,6 +119,42 @@ export default function App() {
       }
     }
   }, []);
+
+  const refreshSignedUrls = useCallback(async () => {
+    const currentEntries = entriesRef.current;
+    if (currentEntries.length === 0) return;
+
+    const resolved = await Promise.all(
+      currentEntries.map(async (entry) => {
+        if (!entry.imagePath) return null;
+        const signedUrl = await resolveImageUrl(entry.imagePath);
+        if (!signedUrl || signedUrl === entry.image) return null;
+        return { id: entry.id, image: signedUrl };
+      })
+    );
+
+    const updates = new Map(
+      resolved.filter(Boolean).map((item) => [item!.id, item!.image])
+    );
+
+    if (updates.size === 0) return;
+
+    setMatchaEntries((prev) =>
+      prev.map((entry) =>
+        updates.has(entry.id) ? { ...entry, image: updates.get(entry.id) as string } : entry
+      )
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const intervalMs = 45 * 60 * 1000;
+    const intervalId = window.setInterval(() => {
+      refreshSignedUrls();
+    }, intervalMs);
+
+    return () => window.clearInterval(intervalId);
+  }, [refreshSignedUrls, user]);
 
   const handleSignOut = useCallback(async () => {
     await signOut();
