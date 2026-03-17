@@ -631,6 +631,8 @@ export default function App() {
           {currentView === 'secret' && (
             <SecretPage
               onNavigateToView={navigateToView}
+              onSignOut={handleSignOut}
+              onNavigateToProfile={handleNavigateToProfile}
             />
           )}
         </motion.div>
