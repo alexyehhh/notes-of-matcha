@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { supabase } from '../lib/supabase';
 import { toast } from 'sonner';
@@ -19,6 +19,54 @@ export function ResetPasswordPage({ onNavigateToView, onSignOut }: ResetPassword
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [passwordChanged, setPasswordChanged] = useState(false);
+  const [isSessionReady, setIsSessionReady] = useState(false);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const hydrateSession = async () => {
+      setSessionError(null);
+      const hashParams = new URLSearchParams(window.location.hash.replace('#', ''));
+      const accessToken = hashParams.get('access_token');
+      const refreshToken = hashParams.get('refresh_token');
+      const type = hashParams.get('type');
+
+      try {
+        if (accessToken && refreshToken && type === 'recovery') {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (error) throw error;
+          if (window.location.hash) {
+            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+          }
+        }
+
+        const code = new URLSearchParams(window.location.search).get('code');
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+          if (window.location.hash) {
+            window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+          }
+        }
+
+        const { data } = await supabase.auth.getSession();
+        if (!data.session) {
+          setSessionError('Auth session missing. Please use the latest reset link from your email.');
+          setIsSessionReady(false);
+          return;
+        }
+
+        setIsSessionReady(true);
+      } catch (error: any) {
+        setSessionError(error.message ?? 'Unable to initialize reset session');
+        setIsSessionReady(false);
+      }
+    };
+
+    hydrateSession();
+  }, []);
 
   const handleReset = useCallback(async () => {
     if (!newPassword || !confirmPassword) {
@@ -31,6 +79,12 @@ export function ResetPasswordPage({ onNavigateToView, onSignOut }: ResetPassword
     }
     if (newPassword.length < 6) {
       toast.error('Password must be at least 6 characters');
+      return;
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      toast.error('Auth session missing. Please use the latest reset link.');
       return;
     }
 
@@ -147,11 +201,13 @@ export function ResetPasswordPage({ onNavigateToView, onSignOut }: ResetPassword
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="••••••••"
                   className={`${inputClass} pr-10`}
+                  disabled={!isSessionReady}
                 />
                 <button
                   type="button"
                   onClick={() => setShowNewPassword(prev => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100 transition-opacity"
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 transition-opacity ${isSessionReady ? 'opacity-50 hover:opacity-100' : 'opacity-30 cursor-not-allowed'}`}
+                  disabled={!isSessionReady}
                 >
                   <EyeIcon visible={showNewPassword} />
                 </button>
@@ -167,11 +223,13 @@ export function ResetPasswordPage({ onNavigateToView, onSignOut }: ResetPassword
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="••••••••"
                   className={`${inputClass} pr-10`}
+                  disabled={!isSessionReady}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(prev => !prev)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100 transition-opacity"
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 transition-opacity ${isSessionReady ? 'opacity-50 hover:opacity-100' : 'opacity-30 cursor-not-allowed'}`}
+                  disabled={!isSessionReady}
                 >
                   <EyeIcon visible={showConfirmPassword} />
                 </button>
@@ -179,13 +237,19 @@ export function ResetPasswordPage({ onNavigateToView, onSignOut }: ResetPassword
             </div>
           </div>
 
+          {sessionError && (
+            <p className="text-center text-xs text-[#342209]/60 mt-4">
+              {sessionError}
+            </p>
+          )}
+
           <motion.button
             onClick={handleReset}
-            disabled={isSaving}
+            disabled={isSaving || !isSessionReady}
             whileHover={{ scale: isSaving ? 1 : 1.01 }}
             whileTap={{ scale: isSaving ? 1 : 0.99 }}
             className={`w-full mt-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-              isSaving
+              isSaving || !isSessionReady
                 ? 'bg-[#7CB342]/50 text-white cursor-not-allowed'
                 : 'bg-[#3e6f2c] text-[#fff9f3] hover:bg-[#5e9526] cursor-pointer'
             }`}
