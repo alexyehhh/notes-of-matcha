@@ -69,10 +69,12 @@ export function AuthPage() {
       if (mode === 'signin') {
         const { error } = await signInWithUsername(signInUsername, signInPassword);
         if (error) throw error;
+        sessionStorage.setItem('nom:forceLanding', '1');
         toast.success('Welcome back!');
       } else {
         const { error } = await signUp(signUpEmail, signUpPassword, signUpName, signUpUsername);
         if (error) throw error;
+        sessionStorage.setItem('nom:forceLanding', '1');
         toast.success('Account created! Welcome to Notes of Matcha.');
       }
     } catch (error: any) {
