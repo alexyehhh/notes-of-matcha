@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { resolveImageUrl, isStoragePath } from '../lib/images';
 import type { MatchaEntry } from '../types';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -14,6 +15,7 @@ function rowToEntry(row: any): MatchaEntry {
     color: row.color,
     favorite: row.favorite,
     image: row.image_url ?? undefined,
+    imagePath: row.image_url ?? undefined,
     tasteAnalysis: {
       sweetness: row.taste_analysis?.sweetness ?? 5,
       bitterness: row.taste_analysis?.bitterness ?? 5,
@@ -43,7 +45,17 @@ export async function fetchMatchaEntries(): Promise<MatchaEntry[]> {
     .order('created_at', { ascending: true }); // tiebreaker for entries with same sort_order
 
   if (error) throw error;
-  return (data ?? []).map(rowToEntry);
+  const entries = (data ?? []).map(rowToEntry);
+
+  const entriesWithImages = await Promise.all(
+    entries.map(async (entry) => {
+      if (!entry.imagePath) return entry;
+      const resolved = await resolveImageUrl(entry.imagePath);
+      return resolved ? { ...entry, image: resolved } : entry;
+    })
+  );
+
+  return entriesWithImages;
 }
 
 // ─── Create ──────────────────────────────────────────────────────────────────
@@ -71,7 +83,7 @@ export async function createMatchaEntry(entry: MatchaEntry, sortOrder?: number):
       notes: entry.notes,
       color: entry.color,
       favorite: entry.favorite,
-      image_url: entry.image ?? null,
+      image_url: entry.imagePath ?? entry.image ?? null,
       user_id: user.id,
       sort_order: resolvedSortOrder,
     })
@@ -124,7 +136,11 @@ export async function updateMatchaEntry(id: string, updates: Partial<MatchaEntry
   if (updates.notes !== undefined) entryUpdates.notes = updates.notes;
   if (updates.color !== undefined) entryUpdates.color = updates.color;
   if (updates.favorite !== undefined) entryUpdates.favorite = updates.favorite;
-  if (updates.image !== undefined) entryUpdates.image_url = updates.image;
+  if (updates.imagePath !== undefined) {
+    entryUpdates.image_url = updates.imagePath;
+  } else if (updates.image !== undefined && isStoragePath(updates.image)) {
+    entryUpdates.image_url = updates.image;
+  }
 
   if (Object.keys(entryUpdates).length > 0) {
     const { error } = await supabase
