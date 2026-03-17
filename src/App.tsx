@@ -81,13 +81,15 @@ export default function App() {
   useEffect(() => {
     if (isAuthLoading) return;
     const prevUser = prevUserRef.current;
-    if (!prevUser && user && !isRecoveryFlow()) {
+    const shouldForceLanding = sessionStorage.getItem('nom:forceLanding') === '1';
+    if (!prevUser && user && !isRecoveryFlow() && shouldForceLanding) {
       setCurrentView('landing');
       setPreviousView('landing');
       setSelectedEntryId(null);
       window.history.replaceState({ view: 'landing', entryId: null }, '', '#landing');
       sessionStorage.setItem('nom:view', 'landing');
       sessionStorage.removeItem('nom:entryId');
+      sessionStorage.removeItem('nom:forceLanding');
     }
     prevUserRef.current = user;
   }, [user, isAuthLoading, isRecoveryFlow]);
