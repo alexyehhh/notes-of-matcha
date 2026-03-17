@@ -544,7 +544,10 @@ export default function App() {
           )}
 
           {currentView === 'profile' && (
-            <ProfilePage />
+            <ProfilePage
+              onNavigateToView={navigateToView}
+              onSignOut={handleSignOut}
+            />
           )}
 
           {currentView === 'secret' && (
