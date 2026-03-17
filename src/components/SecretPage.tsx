@@ -1,11 +1,15 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { ViewType } from "../types";
-import { Eye, EyeOff, BookOpen, Leaf, Sparkles, ChevronLeft } from 'lucide-react';
+import { Eye, EyeOff, BookOpen, Leaf, Sparkles } from 'lucide-react';
 import { useResponsive } from '../hooks/useResponsive';
+import { ProfileMenu } from './ProfileMenu';
+import Group2 from '../imports/Group2';
 
 interface SecretPageProps {
   onNavigateToView: (view: ViewType) => void;
+  onSignOut: () => void;
+  onNavigateToProfile: () => void;
 }
 
 const secrets = [
@@ -35,10 +39,36 @@ const secrets = [
   }
 ];
 
-export function SecretPage({ onNavigateToView }: SecretPageProps) {
+export function SecretPage({ onNavigateToView, onSignOut, onNavigateToProfile }: SecretPageProps) {
   const [revealedSecrets, setRevealedSecrets] = useState<boolean[]>([false, false, false, false]);
   const [currentSecretIndex, setCurrentSecretIndex] = useState(0);
   const { isMobile, isTablet } = useResponsive();
+
+  const getResponsiveValues = () => {
+    if (isMobile) {
+      return {
+        navTop: 'top-[28px]',
+        navRight: 'right-4',
+        navButtonSize: 'w-[24px] h-[24px]'
+      };
+    }
+
+    if (isTablet) {
+      return {
+        navTop: 'top-[36px]',
+        navRight: 'right-8',
+        navButtonSize: 'w-[28px] h-[28px]'
+      };
+    }
+
+    return {
+      navTop: 'top-[52px]',
+      navRight: 'right-[66px]',
+      navButtonSize: 'w-[31.481px] h-[31.481px]'
+    };
+  };
+
+  const responsive = getResponsiveValues();
 
   // Auto-reveal secrets one by one
   useEffect(() => {
@@ -99,18 +129,48 @@ export function SecretPage({ onNavigateToView }: SecretPageProps) {
         ))}
       </div>
 
-      {/* Back button */}
-      <motion.button
-        onClick={() => onNavigateToView('landing')}
-        className="absolute top-6 left-6 z-20 bg-white/80 backdrop-blur-sm border border-white/60 rounded-xl p-3 shadow-lg hover:bg-white/90 transition-all duration-300"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ delay: 0.5 }}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <ChevronLeft size={20} className="text-[#342209]" />
-      </motion.button>
+      {/* Navigation Icons */}
+      <div className={`absolute ${responsive.navTop} ${responsive.navRight} flex gap-[8px] z-20`}>
+        {/* Home Button */}
+        <button 
+          onClick={() => onNavigateToView('landing')}
+          className={`bg-[#342209] rounded-[2.679px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
+        >
+          <svg className={`${isMobile ? 'w-[12px] h-[12px]' : isTablet ? 'w-[14px] h-[14px]' : 'w-[16px] h-[16px]'}`} fill="none" viewBox="0 0 24 24" stroke="#eddecf" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+        </button>
+
+        {/* List View Button */}
+        <button 
+          onClick={() => onNavigateToView('list')}
+          className={`bg-[#342209] rounded-[2.679px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
+        >
+          <div className="flex flex-col gap-[2px] items-center">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="flex gap-[1px]">
+                <div className={`${isMobile ? 'w-[10px] h-[3px]' : isTablet ? 'w-[12px] h-[3.5px]' : 'w-[13.396px] h-[4.019px]'} border border-[#eddecf] rounded-[0.67px]`} />
+                <div className={`${isMobile ? 'w-[3px] h-[3px]' : isTablet ? 'w-[3.5px] h-[3.5px]' : 'w-[4.019px] h-[4.019px]'} border border-[#eddecf] rounded-[0.67px]`} />
+              </div>
+            ))}
+          </div>
+        </button>
+
+        {/* Grid View Button */}
+        <button 
+          onClick={() => onNavigateToView('grid')}
+          className={`bg-[#342209] rounded-[2.679px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors ${isMobile || isTablet ? 'scale-75' : ''}`}
+        >
+          <Group2 />
+        </button>
+
+        {/* Profile Menu */}
+        <ProfileMenu
+          buttonSize={responsive.navButtonSize}
+          onSignOut={onSignOut}
+          onNavigateToProfile={onNavigateToProfile}
+        />
+      </div>
 
       {/* Main content */}
       <div className="relative z-10 flex flex-col items-center justify-center min-h-screen p-6">
