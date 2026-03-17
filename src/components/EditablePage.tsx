@@ -10,9 +10,7 @@ import { useResponsive } from '../hooks/useResponsive';
 import { ColorPicker } from './ColorPicker';
 import { ProfileMenu } from './ProfileMenu';
 import svgPathsFrame27 from '../imports/svg-tkzjn83enc';
-// import imgRectangle3 from "figma:asset/dc6fd5a4a8fa791d2e308774ae9cdd5d0400c792.png";
-// import imgRectangle15 from "figma:asset/cc2e29cb7decd5e1b94615650ce7e42071d9c94a.png";
-// import imgRectangle16 from "figma:asset/e1d39a1e66254ce927156619bbbe9078d9bda195.png";
+import { uploadEntryImage } from '../lib/images';
 import Frame40 from '../imports/Frame40';
 import Group2 from '../imports/Group2';
 import Frame8 from '../imports/Frame8';
@@ -21,7 +19,7 @@ interface EditablePageProps {
   entry: MatchaEntry;
   entryIndex: number;
   totalEntries: number;
-  onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => void;
+  onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => Promise<void>;
   onNavigateToView: (view: ViewType) => void;
   onSwitchToEntry: (entryIndex: number) => void;
   onSignOut: () => void;
@@ -32,6 +30,15 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const { isMobile, isTablet, isDesktop } = useResponsive();
+
+  const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+  const ALLOWED_IMAGE_MIME_TYPES = [
+    'image/jpeg',
+    'image/png',
+    'image/heic',
+    'image/heif',
+  ];
+  const ALLOWED_IMAGE_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.heic', '.heif'];
   
   // Local state for all editable fields
   const [localName, setLocalName] = useState(entry.name);
@@ -106,9 +113,27 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
     const file = event.target.files?.[0];
     if (!file) return;
 
+    const lowerName = file.name.toLowerCase();
+    const hasAllowedExtension = ALLOWED_IMAGE_EXTENSIONS.some((ext) => lowerName.endsWith(ext));
+    const hasAllowedMime = file.type && ALLOWED_IMAGE_MIME_TYPES.includes(file.type);
+
     // Validate image file
-    if (!file.type.startsWith('image/')) {
-      toast.error("Please select a valid image file", {
+    if (!file.type.startsWith('image/') || (!hasAllowedMime && !hasAllowedExtension)) {
+      toast.error("Please select a valid image file (JPG, PNG, or HEIC)", {
+        duration: 3000,
+        style: {
+          background: '#342209',
+          color: '#fff9f3',
+          border: '1px solid #d4183d',
+          borderRadius: '6px',
+          fontFamily: 'Syne, sans-serif',
+        },
+      });
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_BYTES) {
+      toast.error("Image is too large (max 5MB). Please choose a smaller file.", {
         duration: 3000,
         style: {
           background: '#342209',
@@ -122,24 +147,21 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
     }
 
     setIsProcessingImage(true);
-    
-    try {
-      // Convert image to base64 data URL for persistent storage
-      const reader = new FileReader();
-      reader.onload = async (e) => {
-        const base64Image = e.target?.result as string;
-        setIsSaving(true);
-        onUpdateEntry(entry.id, { image: base64Image });
-        setTimeout(() => setIsSaving(false), 300);
 
-        // Show upload success toast
-        toast.success("Image uploaded successfully", {
-          duration: 2000,
-          style: {
-            background: '#342209',
-            color: '#fff9f3',
-            border: '1px solid #7CB342',
-            borderRadius: '6px',
+    try {
+      setIsSaving(true);
+      const { path, signedUrl } = await uploadEntryImage(file, entry.id);
+      await onUpdateEntry(entry.id, { image: signedUrl, imagePath: path });
+      setTimeout(() => setIsSaving(false), 300);
+
+      // Show upload success toast
+      toast.success("Image uploaded successfully", {
+        duration: 2000,
+        style: {
+          background: '#342209',
+          color: '#fff9f3',
+          border: '1px solid #7CB342',
+          borderRadius: '6px',
           fontFamily: 'Syne, sans-serif',
         },
       });
@@ -168,27 +190,9 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
           fontFamily: 'Syne, sans-serif',
         },
       });
-      };
-
-      reader.onerror = () => {
-        setIsProcessingImage(false);
-        toast.error("Failed to read image file", {
-          duration: 3000,
-          style: {
-            background: '#342209',
-            color: '#fff9f3',
-            border: '1px solid #d4183d',
-            borderRadius: '6px',
-            fontFamily: 'Syne, sans-serif',
-          },
-        });
-      };
-
-      // Read the file as base64 data URL
-      reader.readAsDataURL(file);
-      
     } catch (error) {
       console.error('Error processing image:', error);
+      setIsSaving(false);
       setIsProcessingImage(false);
       
       // Show detailed error based on error type
@@ -494,7 +498,7 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
                   </div>
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/heic,image/heif"
                     onChange={handleImageUpload}
                     className="hidden"
                     disabled={isProcessingImage}
