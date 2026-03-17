@@ -39,9 +39,67 @@ export default function App() {
 
   const [matchaEntries, setMatchaEntries] = useState<MatchaEntry[]>([]);
 
+  const getViewFromLocation = useCallback((): { view: ViewType; entryId: string | null } => {
+    const rawHash = window.location.hash.replace('#', '');
+    if (rawHash) {
+      const [hashView, query] = rawHash.split('?');
+      if (hashView === 'editable') {
+        const params = new URLSearchParams(query ?? '');
+        return { view: 'editable', entryId: params.get('entryId') };
+      }
+      if (hashView === 'landing' || hashView === 'grid' || hashView === 'list' || hashView === 'secret' || hashView === 'profile') {
+        return { view: hashView, entryId: null };
+      }
+    }
+
+    const storedView = sessionStorage.getItem('nom:view') as ViewType | null;
+    const storedEntryId = sessionStorage.getItem('nom:entryId');
+    if (storedView === 'editable') {
+      return { view: 'editable', entryId: storedEntryId };
+    }
+    if (storedView === 'landing' || storedView === 'grid' || storedView === 'list' || storedView === 'secret' || storedView === 'profile') {
+      return { view: storedView, entryId: null };
+    }
+
+    return { view: 'landing', entryId: null };
+  }, []);
+
   useEffect(() => {
     entriesRef.current = matchaEntries;
   }, [matchaEntries]);
+
+  useEffect(() => {
+    const applyHashView = () => {
+      if (isAuthLoading) return;
+      if (!user) {
+        setCurrentView('landing');
+        setSelectedEntryId(null);
+        return;
+      }
+
+      const { view: nextView, entryId } = getViewFromLocation();
+      setCurrentView(nextView);
+      if (nextView === 'editable' && entryId) {
+        setSelectedEntryId(entryId);
+      } else {
+        setSelectedEntryId(null);
+      }
+    };
+
+    applyHashView();
+
+    const handleLocationChange = () => {
+      applyHashView();
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    window.addEventListener('hashchange', handleLocationChange);
+
+    return () => {
+      window.removeEventListener('popstate', handleLocationChange);
+      window.removeEventListener('hashchange', handleLocationChange);
+    };
+  }, [getViewFromLocation, user, isAuthLoading]);
 
   // Load data from backend once user is authenticated
   useEffect(() => {
@@ -250,6 +308,8 @@ export default function App() {
       
       // Push to browser history so back button works
       window.history.pushState({ view, entryId }, '', `#${view}`);
+      sessionStorage.setItem('nom:view', view);
+      sessionStorage.setItem('nom:entryId', entryId ?? '');
       
       setCurrentView(view);
       if (entryId) {
@@ -276,7 +336,9 @@ export default function App() {
       setPreviousView(currentView);
       
       // Push to browser history so back button works
-      window.history.pushState({ view: 'editable', entryId }, '', '#editable');
+      window.history.pushState({ view: 'editable', entryId }, '', `#editable?entryId=${entryId}`);
+      sessionStorage.setItem('nom:view', 'editable');
+      sessionStorage.setItem('nom:entryId', entryId);
       
       setCurrentCarouselIndex(entryIndex);
       setSelectedEntryId(entryId);
@@ -293,8 +355,13 @@ export default function App() {
       const entryId = matchaEntries[entryIndex].id;
       setCurrentCarouselIndex(entryIndex);
       setSelectedEntryId(entryId);
+      if (currentView === 'editable') {
+        window.history.replaceState({ view: 'editable', entryId }, '', `#editable?entryId=${entryId}`);
+        sessionStorage.setItem('nom:view', 'editable');
+        sessionStorage.setItem('nom:entryId', entryId);
+      }
     }
-  }, [matchaEntries]);
+  }, [matchaEntries, currentView]);
 
   const reorderMatchaEntries = useCallback(async (newOrder: MatchaEntry[]) => {
   try {
@@ -355,8 +422,19 @@ export default function App() {
 
   // Browser back/forward button support
   useEffect(() => {
-    // Set initial history state
-    window.history.replaceState({ view: 'landing' }, '', '#landing');
+    // Set initial history state based on current hash/session
+    const initial = getViewFromLocation();
+    let initialHash = window.location.hash;
+    if (!initialHash) {
+      if (initial.view === 'editable' && initial.entryId) {
+        initialHash = `#editable?entryId=${initial.entryId}`;
+      } else {
+        initialHash = `#${initial.view}`;
+      }
+      window.history.replaceState({ view: initial.view, entryId: initial.entryId }, '', initialHash);
+    } else {
+      window.history.replaceState({ view: initial.view, entryId: initial.entryId }, '', initialHash);
+    }
 
     const handlePopState = (event: PopStateEvent) => {
       const view = (event.state?.view as ViewType) ?? 'landing';
@@ -376,7 +454,7 @@ export default function App() {
 
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []); // empty deps — refs keep values fresh without re-registering
+  }, [getViewFromLocation]); // initial history should respect current hash/session
 
   // Auto-save indicator
   useEffect(() => {
