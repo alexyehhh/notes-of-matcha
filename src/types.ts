@@ -22,4 +22,4 @@ export interface MatchaEntry {
   favorite: boolean;
 }
 
-export type ViewType = "landing" | "editable" | "grid" | "list" | "secret" | "profile";
+export type ViewType = "landing" | "editable" | "grid" | "list" | "secret" | "profile" | "reset";
