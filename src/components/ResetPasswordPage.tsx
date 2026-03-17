@@ -96,6 +96,11 @@ export function ResetPasswordPage({ onNavigateToView, onSignOut }: ResetPassword
       setNewPassword('');
       setConfirmPassword('');
       toast.success('Password changed');
+      setTimeout(() => {
+        window.history.replaceState({}, document.title, '/');
+        onNavigateToView('landing');
+        onSignOut();
+      }, 1200);
     } catch (error: any) {
       toast.error(error.message ?? 'Failed to reset password');
     } finally {
