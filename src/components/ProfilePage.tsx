@@ -26,8 +26,7 @@ export function ProfilePage() {
   useEffect(() => {
     if (!user) return;
     const loadProfile = async () => {
-      const { data: refreshed } = await supabase.auth.refreshSession();
-      const authUser = refreshed.session?.user ?? user;
+      const authUser = user;
 
       const { data: profileData } = await supabase
         .from('profiles')
@@ -65,10 +64,9 @@ export function ProfilePage() {
   useEffect(() => {
     if (!user) return;
 
-    const refreshFromAuth = async () => {
-      await supabase.auth.refreshSession();
-      const { data } = await supabase.auth.getUser();
-      const freshEmail = data.user?.email;
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event !== 'USER_UPDATED') return;
+      const freshEmail = session?.user?.email;
       if (!freshEmail || freshEmail === originalEmail) return;
 
       const { error: syncError } = await supabase
@@ -82,19 +80,9 @@ export function ProfilePage() {
       if (pendingEmail === freshEmail) {
         setPendingEmail(null);
       }
-    };
+    });
 
-    const handleFocus = () => {
-      refreshFromAuth();
-    };
-
-    window.addEventListener('focus', handleFocus);
-    document.addEventListener('visibilitychange', handleFocus);
-
-    return () => {
-      window.removeEventListener('focus', handleFocus);
-      document.removeEventListener('visibilitychange', handleFocus);
-    };
+    return () => subscription.unsubscribe();
   }, [user, originalEmail, pendingEmail]);
 
   const hasProfileChanges =
