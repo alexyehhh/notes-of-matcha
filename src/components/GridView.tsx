@@ -15,7 +15,7 @@ interface GridViewProps {
   onFiltersChange: (filters: string[]) => void;
   onNavigateToView: (view: ViewType) => void;
   onEditEntry: (entryId: string) => void;
-  onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => void;
+  onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => Promise<void>;
   onAddEntry: (entry: Omit<MatchaEntry, 'id'>) => void;
   onReorderEntries: (entries: MatchaEntry[]) => void;
   onSignOut: () => void;
@@ -34,7 +34,7 @@ function GridCard({ entry, index, moveCard, onDrop, onEditEntry, onUpdateEntry, 
   moveCard: (dragIndex: number, hoverIndex: number) => void;
   onDrop: () => void;
   onEditEntry: (entryId: string) => void;
-  onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => void;
+  onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => Promise<void>;
   activeFilters: string[];
 }) {
   const { isMobile, isTablet } = useResponsive();
