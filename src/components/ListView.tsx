@@ -13,7 +13,7 @@ interface ListViewProps {
   onFiltersChange: (filters: string[]) => void;
   onNavigateToView: (view: ViewType) => void;
   onEditEntry: (entryId: string) => void;
-  onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => void;
+  onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => Promise<void>;
   onAddEntry: (entry: Omit<MatchaEntry, 'id'>) => void;
   onSignOut: () => void;
   onNavigateToProfile: () => void;
@@ -48,7 +48,7 @@ const getListItemResponsiveValues = (isMobile: boolean, isTablet: boolean) => {
 function ListItem({ entry, onEditEntry, onUpdateEntry, activeFilters }: {
   entry: MatchaEntry;
   onEditEntry: (entryId: string) => void;
-  onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => void;
+  onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => Promise<void>;
   activeFilters: string[];
 }) {
   const [isEditing, setIsEditing] = useState<string | null>(null);
