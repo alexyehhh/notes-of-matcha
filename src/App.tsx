@@ -504,8 +504,8 @@ export default function App() {
               entry={currentEntry}
               entryIndex={currentEntryIndex}
               totalEntries={matchaEntries.length}
-              onUpdateEntry={(id, updates) => {
-                updateMatchaEntry(id, updates);
+              onUpdateEntry={async (id, updates) => {
+                await updateMatchaEntry(id, updates);
                 setHasUnsavedChanges(false);
               }}
               onNavigateToView={navigateToView}
