@@ -288,7 +288,7 @@ export function ProfilePage({ onNavigateToView, onSignOut }: ProfilePageProps) {
       <div className={`absolute ${responsive.navTop} ${responsive.navRight} flex items-center gap-[8px] z-10`}>
         <button
           onClick={() => onNavigateToView('landing')}
-          className={`bg-[#342209] rounded-[2.679px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
+          className={`bg-[#342209] rounded-[6px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
           aria-label="Go to home"
         >
           <svg className={responsive.navIconSize} fill="none" viewBox="0 0 24 24" stroke="#eddecf" strokeWidth="2">

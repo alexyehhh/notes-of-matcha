@@ -118,7 +118,7 @@ function GridCard({ entry, index, moveCard, onDrop, onEditEntry, onUpdateEntry, 
     <div
       ref={(node) => dragRef(dropRef(node)) as any}
       onClick={() => onEditEntry(entry.id)}
-      className={`relative ${cardDimensions.width} ${cardDimensions.height} bg-[#fff9f3] rounded-[7px] border-[2.52px] border-[#c2b7ab] border-solid cursor-grab transition-opacity hover:opacity-90 ${
+      className={`relative ${cardDimensions.width} ${cardDimensions.height} bg-[#fff9f3] rounded-[6px] border-[2.52px] border-[#c2b7ab] border-solid cursor-grab transition-opacity hover:opacity-90 ${
         isDragging ? 'opacity-30' : 'opacity-60'
       }`}
     >
@@ -259,7 +259,7 @@ function NewEntryCard({ onAddEntry }: { onAddEntry: (entry: Omit<MatchaEntry, 'i
   return (
     <motion.button
       onClick={handleAddNew}
-      className={`relative ${cardDimensions.width} ${cardDimensions.height} bg-[#fff9f3] rounded-[7px] border-[2.52px] border-[#c2b7ab] border-dashed opacity-30 hover:opacity-50 transition-opacity cursor-pointer`}
+      className={`relative ${cardDimensions.width} ${cardDimensions.height} bg-[#fff9f3] rounded-[6px] border-[2.52px] border-[#c2b7ab] border-dashed opacity-30 hover:opacity-50 transition-opacity cursor-pointer`}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
     >
@@ -467,7 +467,7 @@ function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateTo
         {/* Home Button */}
         <button 
           onClick={() => onNavigateToView('landing')}
-          className={`bg-[#342209] rounded-[2.679px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
+          className={`bg-[#342209] rounded-[6px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
         >
           <svg className={`${isMobile ? 'w-[12px] h-[12px]' : isTablet ? 'w-[14px] h-[14px]' : 'w-[16px] h-[16px]'}`} fill="none" viewBox="0 0 24 24" stroke="#eddecf" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -477,7 +477,7 @@ function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateTo
         {/* List View Button */}
         <button 
           onClick={() => onNavigateToView('list')}
-          className={`bg-[#342209] rounded-[2.679px] ${responsive.navButtonSize} flex items-center justify-center`}
+          className={`bg-[#342209] rounded-[6px] ${responsive.navButtonSize} flex items-center justify-center`}
         >
           <div className="flex flex-col gap-[2px] items-center">
             {[0, 1, 2].map((i) => (

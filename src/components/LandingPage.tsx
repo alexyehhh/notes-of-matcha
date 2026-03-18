@@ -342,7 +342,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
         {/* List View Button */}
         <button 
           onClick={() => onNavigateToView('list')}
-          className={`bg-[#342209] rounded-[2.679px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
+          className={`bg-[#342209] rounded-[6px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
         >
           <div className="flex flex-col gap-[2px] items-center">
             {[0, 1, 2].map((i) => (
@@ -357,7 +357,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
         {/* Grid View Button */}
         <button 
           onClick={() => onNavigateToView('grid')}
-          className={`bg-[#342209] rounded-[2.679px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
+          className={`bg-[#342209] rounded-[6px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
         >
           <Group2 />
         </button>
@@ -423,7 +423,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
           {entries.length === 0 && (
             <motion.button
               onClick={() => handleCarouselClick(0, true)}
-              className="absolute rounded-[7px] overflow-hidden cursor-pointer outline-none focus:outline-none"
+              className="absolute rounded-[6px] overflow-hidden cursor-pointer outline-none focus:outline-none"
               style={{
                 width: `${responsive.centerWidth}px`,
                 height: `${responsive.centerHeight}px`,
@@ -489,7 +489,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
                 <motion.button
                   key={`new-entry-${imageData.position}`}
                   onClick={() => handleCarouselClick(imageData.index, true)}
-                  className="absolute rounded-[7px] overflow-hidden cursor-pointer outline-none focus:outline-none"
+                  className="absolute rounded-[6px] overflow-hidden cursor-pointer outline-none focus:outline-none"
                   style={{
                     width: `${width}px`,
                     height: `${height}px`,
@@ -536,7 +536,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
                 <motion.button
                   key={`${imageData.index}-${imageData.position}`}
                   onClick={() => handleCarouselClick(imageData.index)}
-                  className="absolute rounded-[7px] overflow-hidden cursor-pointer outline-none focus:outline-none"
+                  className="absolute rounded-[6px] overflow-hidden cursor-pointer outline-none focus:outline-none"
                   style={{
                     width: `${width}px`,
                     height: `${height}px`,
@@ -577,7 +577,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
                 onClick={() => handleCarouselClick(imageData.index)}
                 onMouseEnter={() => setHoveredImageIndex(imageData.index)}
                 onMouseLeave={() => setHoveredImageIndex(null)}
-                className="absolute rounded-[7px] overflow-hidden border-[2.52px] border-[#c2b7ab] border-solid cursor-pointer outline-none focus:outline-none"
+                className="absolute rounded-[6px] overflow-hidden border-[2.52px] border-[#c2b7ab] border-solid cursor-pointer outline-none focus:outline-none"
                 style={{
                   width: `${width}px`,
                   height: `${height}px`,
@@ -698,7 +698,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
               setEntryToDelete(entries[currentIndex].id);
               setShowDeleteConfirm(true);
             }}
-            className="bg-[#342209] hover:bg-red-600 transition-colors duration-200 rounded-[2.679px] p-3 shadow-lg flex items-center justify-center group"
+            className="bg-[#342209] hover:bg-red-600 transition-colors duration-200 rounded-[6px] p-3 shadow-lg flex items-center justify-center group"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             initial={{ opacity: 0, y: 10 }}

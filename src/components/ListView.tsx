@@ -105,14 +105,14 @@ function ListItem({ entry, onEditEntry, onUpdateEntry, onRequestDelete, activeFi
   if (isMobile) {
     return (
       <motion.div
-        className="relative w-full bg-[#fff9f3] rounded-[7px] border-[2.52px] border-[#c2b7ab] border-solid opacity-50 hover:opacity-70 transition-opacity cursor-pointer p-4"
+        className="relative w-full bg-[#fff9f3] rounded-[6px] border-[2.52px] border-[#c2b7ab] border-solid opacity-50 hover:opacity-70 transition-opacity cursor-pointer p-4"
         onClick={() => onEditEntry(entry.id)}
         whileHover={{ scale: 1.005 }}
         layout
       >
         <div className="flex items-start gap-4">
           {/* Image or Frame40 default */}
-          <div className="w-[60px] h-[60px] rounded-[7px] border-[2.52px] border-[#c2b7ab] border-solid overflow-hidden flex-shrink-0">
+          <div className="w-[60px] h-[60px] rounded-[6px] border-[2.52px] border-[#c2b7ab] border-solid overflow-hidden flex-shrink-0">
             {entry.image ? (
               <div
                 className="w-full h-full bg-center bg-cover bg-no-repeat"
@@ -242,13 +242,13 @@ function ListItem({ entry, onEditEntry, onUpdateEntry, onRequestDelete, activeFi
   // Tablet and desktop layout using shared configuration
   return (
     <motion.div
-      className={`relative ${layout.itemWidth} ${layout.itemHeight} bg-[#fff9f3] rounded-[7px] border-[2.52px] border-[#c2b7ab] border-solid opacity-50 hover:opacity-70 transition-opacity cursor-pointer`}
+      className={`relative ${layout.itemWidth} ${layout.itemHeight} bg-[#fff9f3] rounded-[6px] border-[2.52px] border-[#c2b7ab] border-solid opacity-50 hover:opacity-70 transition-opacity cursor-pointer`}
       onClick={() => onEditEntry(entry.id)}
       whileHover={{ scale: 1.005 }}
       layout
     >
       {/* Image or Frame40 default */}
-      <div className={`absolute ${layout.imagePosition} ${layout.imageSize} rounded-[7px] border-[2.52px] border-[#c2b7ab] border-solid overflow-hidden`}>
+      <div className={`absolute ${layout.imagePosition} ${layout.imageSize} rounded-[6px] border-[2.52px] border-[#c2b7ab] border-solid overflow-hidden`}>
         {entry.image ? (
           <div
             className="w-full h-full bg-center bg-cover bg-no-repeat"
@@ -393,13 +393,13 @@ function NewEntryItem({ onAddEntry }: { onAddEntry: (entry: Omit<MatchaEntry, 'i
     return (
       <motion.button
         onClick={handleAddNew}
-        className="relative w-full bg-[#fff9f3] rounded-[7px] border-[2.52px] border-[#c2b7ab] border-dashed opacity-30 hover:opacity-50 transition-opacity cursor-pointer p-4"
+        className="relative w-full bg-[#fff9f3] rounded-[6px] border-[2.52px] border-[#c2b7ab] border-dashed opacity-30 hover:opacity-50 transition-opacity cursor-pointer p-4"
         whileHover={{ scale: 1.005 }}
         whileTap={{ scale: 0.995 }}
       >
         <div className="flex items-start gap-4">
           {/* Image placeholder - matching ListItem image container */}
-          <div className="w-[60px] h-[60px] rounded-[7px] border-[2.52px] border-[#c2b7ab] border-dashed overflow-hidden flex-shrink-0 flex items-center justify-center">
+          <div className="w-[60px] h-[60px] rounded-[6px] border-[2.52px] border-[#c2b7ab] border-dashed overflow-hidden flex-shrink-0 flex items-center justify-center">
             <div className="font-['Syne_Mono'] text-[24px] text-[#c2b7ab] leading-none">+</div>
           </div>
           
@@ -417,12 +417,12 @@ function NewEntryItem({ onAddEntry }: { onAddEntry: (entry: Omit<MatchaEntry, 'i
   return (
     <motion.button
       onClick={handleAddNew}
-      className={`relative ${layout.itemWidth} ${layout.itemHeight} bg-[#fff9f3] rounded-[7px] border-[2.52px] border-[#c2b7ab] border-dashed opacity-30 hover:opacity-50 transition-opacity cursor-pointer`}
+      className={`relative ${layout.itemWidth} ${layout.itemHeight} bg-[#fff9f3] rounded-[6px] border-[2.52px] border-[#c2b7ab] border-dashed opacity-30 hover:opacity-50 transition-opacity cursor-pointer`}
       whileHover={{ scale: 1.005 }}
       whileTap={{ scale: 0.995 }}
     >
       {/* Image container - exact same positioning and sizing as ListItem */}
-      <div className={`absolute ${layout.imagePosition} ${layout.imageSize} rounded-[7px] border-[2.52px] border-[#c2b7ab] border-dashed overflow-hidden flex items-center justify-center`}>
+      <div className={`absolute ${layout.imagePosition} ${layout.imageSize} rounded-[6px] border-[2.52px] border-[#c2b7ab] border-dashed overflow-hidden flex items-center justify-center`}>
         <svg className={`${isTablet ? 'w-[35px] h-[35px]' : 'w-[42px] h-[42px]'}`} fill="none" viewBox="0 0 100 100">
           <rect x="42" y="25" width="16" height="50" fill="#c2b7ab" rx="3"/>
           <rect x="25" y="42" width="50" height="16" fill="#c2b7ab" rx="3"/>
@@ -573,7 +573,7 @@ export function ListView({ entries, activeFilters, onFiltersChange, onNavigateTo
         {/* Home Button */}
         <button 
           onClick={() => onNavigateToView('landing')}
-          className={`bg-[#342209] rounded-[2.679px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
+          className={`bg-[#342209] rounded-[6px] ${responsive.navButtonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
         >
           <svg className={`${isMobile ? 'w-[12px] h-[12px]' : isTablet ? 'w-[14px] h-[14px]' : 'w-[16px] h-[16px]'}`} fill="none" viewBox="0 0 24 24" stroke="#eddecf" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -581,7 +581,7 @@ export function ListView({ entries, activeFilters, onFiltersChange, onNavigateTo
         </button>
 
         {/* List View Button - Active */}
-        <button className={`bg-[#342209] rounded-[2.679px] ${responsive.navButtonSize} flex items-center justify-center`}>
+        <button className={`bg-[#342209] rounded-[6px] ${responsive.navButtonSize} flex items-center justify-center`}>
           <div className="flex flex-col gap-[2px] items-center">
             {[0, 1, 2].map((i) => (
               <div key={i} className="flex gap-[1px]">

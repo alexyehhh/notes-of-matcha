@@ -27,7 +27,7 @@ export function ProfileMenu({ buttonSize, onSignOut, onNavigateToProfile, disabl
       {/* Profile icon button */}
       <button
         onClick={() => setIsOpen(prev => !prev)}
-        className={`bg-[#342209] rounded-[2.679px] ${buttonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
+        className={`bg-[#342209] rounded-[6px] ${buttonSize} flex items-center justify-center hover:bg-[#4a2f0d] transition-colors`}
       >
         <svg
           className="w-[55%] h-[55%]"
