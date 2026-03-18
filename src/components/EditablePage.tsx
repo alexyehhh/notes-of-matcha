@@ -1,12 +1,13 @@
 import { useState, useCallback, useEffect } from 'react';
 import * as React from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 // import { toast } from "sonner@2.0.3";
 import { toast } from "sonner";
 import type { MatchaEntry, ViewType } from '../types';
 import { InteractiveRadarChart } from './InteractiveRadarChart';
 import { useResponsive } from '../hooks/useResponsive';
 
+import { Trash2 } from 'lucide-react';
 import { ColorPicker } from './ColorPicker';
 import { ProfileMenu } from './ProfileMenu';
 import svgPathsFrame27 from '../imports/svg-tkzjn83enc';
@@ -23,12 +24,14 @@ interface EditablePageProps {
   onNavigateToView: (view: ViewType) => void;
   onSwitchToEntry: (entryIndex: number) => void;
   onSignOut: () => void;
+  onDeleteEntry: (entryId: string) => void;
 }
 
-export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, onNavigateToView, onSwitchToEntry, onSignOut }: EditablePageProps) {
+export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, onNavigateToView, onSwitchToEntry, onSignOut, onDeleteEntry }: EditablePageProps) {
   const [isTranslating, setIsTranslating] = useState(false);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const { isMobile, isTablet, isDesktop } = useResponsive();
 
   const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
@@ -94,6 +97,16 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
   const markAsChanged = useCallback(() => {
     setHasUnsavedChanges(true);
   }, []);
+
+  const handleDeleteConfirm = () => {
+    onDeleteEntry(entry.id);
+    setShowDeleteConfirm(false);
+    onNavigateToView('landing');
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false);
+  };
 
   const handleFlavorProfileToggle = useCallback((flavor: 'grassy' | 'nutty' | 'floral') => {
     const newFlavorProfile = {
@@ -337,6 +350,42 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
 
   return (
     <div className="relative w-full min-h-screen bg-[#eddecf] pb-20">
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-xl p-6 shadow-xl border border-white/60 max-w-sm w-full"
+            >
+              <h3 className="text-lg font-medium text-[#342209] mb-2">Are you sure you want to delete this entry?</h3>
+              <p className="text-sm text-[#342209]/70 mb-4">
+                This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={handleDeleteCancel}
+                  className="px-4 py-2 text-sm rounded-lg border border-[#342209]/20 text-[#342209] hover:bg-[#342209]/5 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+                >
+                  Confirm Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Header */}
       <div className={`absolute ${responsive.headerTop} left-1/2 transform -translate-x-1/2 z-10`}>
         <div className={`font-['Syne'] font-normal ${responsive.headerFontSize} text-[#342209] tracking-[-2.4px]`}>
@@ -740,8 +789,8 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
         </div>
       </div>
 
-      {/* Save Button - Center Bottom */}
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50">
+      {/* Action Buttons - Center Bottom */}
+      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 flex items-center gap-4">
         <button
           onClick={handleSave}
           disabled={!hasUnsavedChanges || isSaving}
@@ -753,6 +802,18 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
         >
           <Frame8 />
         </button>
+        {/* Delete Button */}
+        <motion.button
+            onClick={() => setShowDeleteConfirm(true)}
+            className="bg-[#342209] hover:bg-red-600 transition-colors duration-200 rounded-[6px] p-3 shadow-lg flex items-center justify-center group h-[46px] w-[46px]"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <Trash2 
+              size={20} 
+              className="text-[#eddecf] group-hover:text-white transition-colors duration-200" 
+            />
+        </motion.button>
       </div>
 
       {/* Auto-save Indicator */}
