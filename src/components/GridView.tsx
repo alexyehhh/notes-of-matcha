@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { DndProvider, useDrag, useDrop, useDragDropManager } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import type { MatchaEntry, ViewType } from '../types';
@@ -8,6 +8,7 @@ import svgPaths from '../imports/svg-6owz6pfb8x';
 import Group2 from '../imports/Group2';
 import Frame40 from '../imports/Frame40';
 import { ProfileMenu } from './ProfileMenu';
+import { Trash2 } from 'lucide-react';
 
 interface GridViewProps {
   entries: MatchaEntry[];
@@ -18,6 +19,7 @@ interface GridViewProps {
   onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => Promise<void>;
   onAddEntry: (entry: Omit<MatchaEntry, 'id'>) => void;
   onReorderEntries: (entries: MatchaEntry[]) => void;
+  onDeleteEntry: (entryId: string) => void;
   onSignOut: () => void;
   onNavigateToProfile: () => void;
 }
@@ -28,13 +30,14 @@ interface DragItem {
   type: string;
 }
 
-function GridCard({ entry, index, moveCard, onDrop, onEditEntry, onUpdateEntry, activeFilters }: {
+function GridCard({ entry, index, moveCard, onDrop, onEditEntry, onUpdateEntry, onRequestDelete, activeFilters }: {
   entry: MatchaEntry;
   index: number;
   moveCard: (dragIndex: number, hoverIndex: number) => void;
   onDrop: () => void;
   onEditEntry: (entryId: string) => void;
   onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => Promise<void>;
+  onRequestDelete: (id: string) => void;
   activeFilters: string[];
 }) {
   const { isMobile, isTablet } = useResponsive();
@@ -103,6 +106,14 @@ function GridCard({ entry, index, moveCard, onDrop, onEditEntry, onUpdateEntry, 
     ? { bottom: 'bottom-[16px]', left: 'left-[20px]', width: 'w-[55px]' }
     : { bottom: 'bottom-[18px]', left: 'left-[22px]', width: 'w-[63px]' };
 
+  const deletePosition = isMobile 
+    ? { bottom: 'bottom-[15px]', right: 'right-[20px]' }
+    : isTablet 
+    ? { bottom: 'bottom-[16px]', right: 'right-[20px]' }
+    : { bottom: 'bottom-[18px]', right: 'right-[22px]' };
+
+  const deleteIconSize = isMobile ? 14 : isTablet ? 16 : 18;
+
   return (
     <div
       ref={(node) => dragRef(dropRef(node)) as any}
@@ -141,7 +152,7 @@ function GridCard({ entry, index, moveCard, onDrop, onEditEntry, onUpdateEntry, 
         <div className={`font-['Syne'] font-normal ${
           isMobile ? 'text-[10px]' : isTablet ? 'text-[11px]' : 'text-[12px]'
         } text-[#342209] uppercase text-left`}>
-          {entry.prefecture}
+          {entry.brand}
         </div>
       </div>
       
@@ -194,6 +205,17 @@ function GridCard({ entry, index, moveCard, onDrop, onEditEntry, onUpdateEntry, 
           </div>
         ))}
       </div>
+
+      {/* Delete button */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onRequestDelete(entry.id);
+        }}
+        className={`absolute ${deletePosition.bottom} ${deletePosition.right} z-10 hover:scale-110 transition-transform`}
+      >
+        <Trash2 size={deleteIconSize} className="text-[#342209]" strokeWidth={2} />
+      </button>
     </div>
   );
 }
@@ -251,10 +273,26 @@ function NewEntryCard({ onAddEntry }: { onAddEntry: (entry: Omit<MatchaEntry, 'i
   );
 }
 
-function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateToView, onEditEntry, onUpdateEntry, onAddEntry, onReorderEntries, onSignOut, onNavigateToProfile }: GridViewProps) {
+function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateToView, onEditEntry, onUpdateEntry, onAddEntry, onReorderEntries, onDeleteEntry, onSignOut, onNavigateToProfile }: GridViewProps) {
   const [localEntries, setLocalEntries] = useState(entries);
   const localEntriesRef = useRef(entries);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
+
+  const handleDeleteConfirm = () => {
+    if (entryToDelete) {
+      onDeleteEntry(entryToDelete);
+    }
+    setShowDeleteConfirm(false);
+    setEntryToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false);
+    setEntryToDelete(null);
+  };
+
   const { isMobile, isTablet } = useResponsive();
   const dragDropManager = useDragDropManager();
   const isDragging = dragDropManager.getMonitor().isDragging();
@@ -380,6 +418,43 @@ function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateTo
 
   return (
     <div className="relative w-full min-h-screen bg-[#eddecf] overflow-auto">
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-xl p-6 shadow-xl border border-white/60 max-w-sm w-full"
+            >
+              <h3 className="text-lg font-medium text-[#342209] mb-2">Are you sure you want to delete this entry?</h3>
+              <p className="text-sm text-[#342209]/70 mb-4">
+                This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={handleDeleteCancel}
+                  className="px-4 py-2 text-sm rounded-lg border border-[#342209]/20 text-[#342209] hover:bg-[#342209]/5 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+                >
+                  Confirm Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Header */}
       <div className={`absolute ${responsive.headerTop} left-1/2 transform -translate-x-1/2 z-10`}>
         <div className={`font-['Syne'] font-normal ${responsive.headerFontSize} text-[#342209] tracking-[-2.4px] text-center`}>
@@ -474,6 +549,10 @@ function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateTo
                 onDrop={handleDrop}
                 onEditEntry={onEditEntry}
                 onUpdateEntry={onUpdateEntry}
+                onRequestDelete={(id) => {
+                  setEntryToDelete(id);
+                  setShowDeleteConfirm(true);
+                }}
                 activeFilters={activeFilters}
               />
             );
