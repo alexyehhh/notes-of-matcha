@@ -38,8 +38,8 @@ const getListItemResponsiveValues = (isMobile: boolean, isTablet: boolean) => {
     imagePosition: isTablet ? 'top-[15px] left-[18px]' : 'top-[18px] left-[22px]',
     namePosition: isTablet ? 'top-[30px] left-[110px]' : 'top-[38px] left-[151px]',
     nameSize: isTablet ? 'text-[24px]' : 'text-[30px]',
-    prefecturePosition: isTablet ? 'top-[30px] left-[320px]' : 'top-[38px] left-[440px]',
-    prefectureSize: isTablet ? 'text-[11px]' : 'text-[13px]',
+    brandPosition: isTablet ? 'top-[30px] left-[320px]' : 'top-[38px] left-[440px]',
+    brandSize: isTablet ? 'text-[11px]' : 'text-[13px]',
     tagPosition: isTablet ? 'top-[30px] right-[150px]' : 'top-[38px] right-[200px]',
     tagGap: isTablet ? 'gap-[6px]' : 'gap-[8.427px]',
     tagSize: isTablet ? 'text-[16px] px-[8px] py-[2px] h-[26px]' : 'text-[19.476px] px-[10.712px] py-[2.921px] h-[30.188px]',
@@ -58,7 +58,7 @@ function ListItem({ entry, onEditEntry, onUpdateEntry, onRequestDelete, activeFi
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const [localValues, setLocalValues] = useState({
     name: entry.name,
-    prefecture: entry.prefecture
+    brand: entry.brand
   });
   const { isMobile, isTablet } = useResponsive();
   const layout = getListItemResponsiveValues(isMobile, isTablet);
@@ -82,9 +82,9 @@ function ListItem({ entry, onEditEntry, onUpdateEntry, onRequestDelete, activeFi
       handleSave(field);
     } else if (e.key === 'Escape') {
       setIsEditing(null);
-      setLocalValues({ name: entry.name, prefecture: entry.prefecture });
+      setLocalValues({ name: entry.name, brand: entry.brand });
     }
-  }, [handleSave, entry.name, entry.prefecture]);
+  }, [handleSave, entry.name, entry.brand]);
 
   const getActiveFlavorProfiles = (): ('grassy' | 'nutty' | 'floral')[] => {
   return Object.entries(entry.flavorProfile)
@@ -162,14 +162,14 @@ function ListItem({ entry, onEditEntry, onUpdateEntry, onRequestDelete, activeFi
                 )}
               </div>
 
-              {/* Prefecture - Editable */}
+              {/* Brand - Editable */}
               <div className="flex-shrink-0">
-                {isEditing === 'prefecture' ? (
+                {isEditing === 'brand' ? (
                   <input
-                    value={localValues.prefecture}
-                    onChange={(e) => handleEdit('prefecture', e.target.value)}
-                    onBlur={() => handleSave('prefecture')}
-                    onKeyDown={(e) => handleKeyPress(e, 'prefecture')}
+                    value={localValues.brand}
+                    onChange={(e) => handleEdit('brand', e.target.value)}
+                    onBlur={() => handleSave('brand')}
+                    onKeyDown={(e) => handleKeyPress(e, 'brand')}
                     className="font-['Syne'] font-normal text-[11px] text-[#342209] uppercase bg-transparent border-none outline-none"
                     autoFocus
                   />
@@ -177,11 +177,11 @@ function ListItem({ entry, onEditEntry, onUpdateEntry, onRequestDelete, activeFi
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      setIsEditing('prefecture');
+                      setIsEditing('brand');
                     }}
                     className="font-['Syne'] font-normal text-[11px] text-[#342209] uppercase hover:bg-white/20 rounded px-1"
                   >
-                    {entry.prefecture}
+                    {entry.brand}
                   </button>
                 )}
               </div>
@@ -295,26 +295,26 @@ function ListItem({ entry, onEditEntry, onUpdateEntry, onRequestDelete, activeFi
         )}
       </div>
 
-      {/* Prefecture - Editable */}
-      <div className={`absolute ${layout.prefecturePosition} ${isTablet ? 'w-[100px] h-[29px]' : 'w-[120px] h-[35px]'}`}>
-        {isEditing === 'prefecture' ? (
+      {/* Brand - Editable */}
+      <div className={`absolute ${layout.brandPosition} ${isTablet ? 'w-[100px] h-[29px]' : 'w-[120px] h-[35px]'}`}>
+        {isEditing === 'brand' ? (
           <input
-            value={localValues.prefecture}
-            onChange={(e) => handleEdit('prefecture', e.target.value)}
-            onBlur={() => handleSave('prefecture')}
-            onKeyDown={(e) => handleKeyPress(e, 'prefecture')}
-            className={`w-full h-full font-['Syne'] font-normal ${layout.prefectureSize} text-[#342209] uppercase bg-transparent border-none outline-none flex items-end`}
+            value={localValues.brand}
+            onChange={(e) => handleEdit('brand', e.target.value)}
+            onBlur={() => handleSave('brand')}
+            onKeyDown={(e) => handleKeyPress(e, 'brand')}
+            className={`w-full h-full font-['Syne'] font-normal ${layout.brandSize} text-[#342209] uppercase bg-transparent border-none outline-none flex items-end`}
             autoFocus
           />
         ) : (
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setIsEditing('prefecture');
+              setIsEditing('brand');
             }}
-            className={`w-full h-full font-['Syne'] font-normal ${layout.prefectureSize} text-[#342209] uppercase hover:bg-white/20 rounded px-1 py-0 flex items-end justify-start`}
+            className={`w-full h-full font-['Syne'] font-normal ${layout.brandSize} text-[#342209] uppercase hover:bg-white/20 rounded px-1 py-0 flex items-end justify-start`}
           >
-            {entry.prefecture}
+            {entry.brand}
           </button>
         )}
       </div>
