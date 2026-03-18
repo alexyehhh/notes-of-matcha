@@ -672,6 +672,7 @@ export default function App() {
               onEditEntry={navigateToEditableView}
               onUpdateEntry={updateMatchaEntry}
               onAddEntry={addMatchaEntry}
+              onDeleteEntry={deleteMatchaEntry}
               onSignOut={handleSignOut}
               onNavigateToProfile={handleNavigateToProfile}
             />
