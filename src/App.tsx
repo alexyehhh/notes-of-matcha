@@ -645,6 +645,7 @@ export default function App() {
               onNavigateToView={navigateToView}
               onSwitchToEntry={switchToEntry}
               onSignOut={handleSignOut}
+              onDeleteEntry={deleteMatchaEntry}
             />
           )}
           
