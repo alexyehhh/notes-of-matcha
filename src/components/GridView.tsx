@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { motion } from 'motion/react';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
+import { DndProvider, useDrag, useDrop, useDragDropManager } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import type { MatchaEntry, ViewType } from '../types';
 import { useResponsive } from '../hooks/useResponsive';
@@ -256,16 +256,18 @@ function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateTo
   const localEntriesRef = useRef(entries);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const { isMobile, isTablet } = useResponsive();
+  const dragDropManager = useDragDropManager();
+  const isDragging = dragDropManager.getMonitor().isDragging();
 
-  // Only sync from parent when IDs change (add/delete), not on reorder
+  // Sync with parent `entries` prop, but not while dragging.
+  // This allows local reordering to work smoothly, while still
+  // receiving updates from parent (e.g. favorite status change).
   React.useEffect(() => {
-    const localIds = localEntriesRef.current.map(e => e.id).join(',');
-    const parentIds = entries.map(e => e.id).join(',');
-    if (localIds !== parentIds) {
+    if (!isDragging) {
       setLocalEntries(entries);
       localEntriesRef.current = entries;
     }
-  }, [entries]);
+  }, [entries, isDragging]);
 
   const moveCard = useCallback((dragIndex: number, hoverIndex: number) => {
     const newEntries = [...localEntriesRef.current];
