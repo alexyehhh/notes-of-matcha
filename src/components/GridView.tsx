@@ -393,7 +393,7 @@ function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateTo
         headerFontSize: 'text-[30px]',
         navTop: 'top-[52px]',
         navRight: 'right-[66px]',
-        navButtonSize: 'w-[31.481px] h-[31.481px]',
+        navButtonSize: 'w-[32px] h-[32px]',
         filterTop: 'top-[118px]',
         filterGap: 'gap-[10px]',
         filterFontSize: 'text-[20px]',
@@ -490,7 +490,7 @@ function GridViewContent({ entries, activeFilters, onFiltersChange, onNavigateTo
         </button>
 
         {/* Grid View Button - Active */}
-        <button className={`${responsive.navButtonSize} ${isMobile || isTablet ? 'scale-75' : ''}`}>
+        <button className={`rounded-[6px] ${responsive.navButtonSize} ${isMobile || isTablet ? 'scale-75' : ''}`}>
           <Group2 />
         </button>
 

@@ -64,7 +64,7 @@ export function SecretPage({ onNavigateToView, onSignOut, onNavigateToProfile }:
     return {
       navTop: 'top-[52px]',
       navRight: 'right-[66px]',
-      navButtonSize: 'w-[31.481px] h-[31.481px]'
+      navButtonSize: 'w-[32px] h-[32px]'
     };
   };
 

@@ -244,7 +244,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
         headerFontSize: 'text-[30px]',
         navTop: 'top-[52px]',
         navRight: 'right-[66px]',
-        navButtonSize: 'w-[31.481px] h-[31.481px]',
+        navButtonSize: 'w-[32px] h-[32px]',
         indicatorTop: 'top-[121px]',
         indicatorGap: 'gap-[28px]',
         indicatorSize: 'w-[13px] h-[13px]',

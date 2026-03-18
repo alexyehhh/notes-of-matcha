@@ -328,7 +328,7 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
         headerFontSize: 'text-[30px]',
         navTop: 'top-[52px]',
         navRight: 'right-[66px]',
-        navButtonSize: 'w-[31.481px] h-[31.481px]',
+        navButtonSize: 'w-[32px] h-[32px]',
         saveStatusTop: 'top-[52px]',
         saveStatusRight: 'right-[240px]',
         saveStatusSize: 'text-[12px] px-3 py-1',
@@ -433,7 +433,7 @@ export function EditablePage({ entry, entryIndex, totalEntries, onUpdateEntry, o
         {/* Grid View Button */}
         <button 
           onClick={() => onNavigateToView('grid')}
-          className={`${responsive.navButtonSize} hover:opacity-80 transition-opacity ${isMobile || isTablet ? 'scale-75' : ''}`}
+          className={`rounded-[6px] ${responsive.navButtonSize} hover:opacity-80 transition-opacity ${isMobile || isTablet ? 'scale-75' : ''}`}
         >
           <Group2 />
         </button>
