@@ -658,6 +658,7 @@ export default function App() {
               onUpdateEntry={updateMatchaEntry}
               onAddEntry={addMatchaEntry}
               onReorderEntries={reorderMatchaEntries}
+              onDeleteEntry={deleteMatchaEntry}
               onSignOut={handleSignOut}
               onNavigateToProfile={handleNavigateToProfile}
             />
