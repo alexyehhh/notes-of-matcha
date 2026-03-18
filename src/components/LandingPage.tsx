@@ -27,11 +27,26 @@ interface LandingPageProps {
 
 export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateToView, onEditEntry, onAddEntry, onDeleteEntry, onSignOut, onNavigateToProfile }: LandingPageProps) {
   const [hoveredImageIndex, setHoveredImageIndex] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
   const touchStartRef = useRef<number | null>(null);
   const [, setWindowSize] = useState({ width: typeof window !== 'undefined' ? window.innerWidth : 1200, height: typeof window !== 'undefined' ? window.innerHeight : 800 });
   const { isMobile, isTablet } = useResponsive();
   const totalEntries = entries.length;
   
+  const handleDeleteConfirm = () => {
+    if (entryToDelete) {
+      onDeleteEntry(entryToDelete);
+    }
+    setShowDeleteConfirm(false);
+    setEntryToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false);
+    setEntryToDelete(null);
+  };
+
   // Listen for window resize to update carousel dimensions
   useEffect(() => {
     const handleResize = () => {
@@ -260,6 +275,42 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
       className={`relative w-full bg-[#eddecf] ${responsive.bottomPadding}`}
       style={{ minHeight: `${totalPageHeight}px` }}
     >
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-xl p-6 shadow-xl border border-white/60 max-w-sm w-full"
+            >
+              <h3 className="text-lg font-medium text-[#342209] mb-2">Are you sure you want to delete this entry?</h3>
+              <p className="text-sm text-[#342209]/70 mb-4">
+                This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={handleDeleteCancel}
+                  className="px-4 py-2 text-sm rounded-lg border border-[#342209]/20 text-[#342209] hover:bg-[#342209]/5 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+                >
+                  Confirm Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Header */}
       <div className={`absolute ${responsive.headerTop} left-1/2 transform -translate-x-1/2 z-10`}>
         <motion.button
@@ -644,7 +695,8 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
           <motion.button
             onClick={(e) => {
               e.stopPropagation();
-              onDeleteEntry(entries[currentIndex].id);
+              setEntryToDelete(entries[currentIndex].id);
+              setShowDeleteConfirm(true);
             }}
             className="bg-[#342209] hover:bg-red-600 transition-colors duration-200 rounded-[2.679px] p-3 shadow-lg flex items-center justify-center group"
             whileHover={{ scale: 1.05 }}
