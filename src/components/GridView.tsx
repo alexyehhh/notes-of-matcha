@@ -123,7 +123,7 @@ function GridCard({ entry, index, moveCard, onDrop, onEditEntry, onUpdateEntry, 
       }`}
     >
       {/* Image or Frame40 default */}
-      <div className={`absolute ${imageDimensions.top} ${imageDimensions.left} ${imageDimensions.width} ${imageDimensions.height} rounded-[4px] border-[2.52px] border-[#f6ebe1] border-solid overflow-hidden`}>
+      <div className={`absolute ${imageDimensions.top} ${imageDimensions.left} ${imageDimensions.width} ${imageDimensions.height} rounded-[6px] border-[2.52px] border-[#f6ebe1] border-solid overflow-hidden`}>
         {entry.image ? (
           <div
             className="w-full h-full bg-center bg-cover bg-no-repeat"

@@ -609,7 +609,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
               >
                 {/* Background Image or Frame40 Default */}
                 {imageData.src ? (
-                  <div className={`w-full h-full relative rounded-[5px] overflow-hidden transition-all duration-300 ${
+                  <div className={`w-full h-full relative rounded-[6px] overflow-hidden transition-all duration-300 ${
                     hoveredImageIndex === imageData.index ? 'blur-sm opacity-70' : ''
                   }`}>
                     <img
