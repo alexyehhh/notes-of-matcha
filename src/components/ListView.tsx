@@ -6,6 +6,7 @@ import svgPaths from '../imports/svg-6owz6pfb8x';
 import Group2 from '../imports/Group2';
 import Frame40 from '../imports/Frame40';
 import { ProfileMenu } from './ProfileMenu';
+import { Trash2 } from 'lucide-react';
 
 interface ListViewProps {
   entries: MatchaEntry[];
@@ -14,6 +15,7 @@ interface ListViewProps {
   onNavigateToView: (view: ViewType) => void;
   onEditEntry: (entryId: string) => void;
   onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => Promise<void>;
+  onDeleteEntry: (entryId: string) => void;
   onAddEntry: (entry: Omit<MatchaEntry, 'id'>) => void;
   onSignOut: () => void;
   onNavigateToProfile: () => void;
@@ -41,14 +43,16 @@ const getListItemResponsiveValues = (isMobile: boolean, isTablet: boolean) => {
     tagPosition: isTablet ? 'top-[30px] right-[150px]' : 'top-[38px] right-[200px]',
     tagGap: isTablet ? 'gap-[6px]' : 'gap-[8.427px]',
     tagSize: isTablet ? 'text-[16px] px-[8px] py-[2px] h-[26px]' : 'text-[19.476px] px-[10.712px] py-[2.921px] h-[30.188px]',
-    favoritePosition: isTablet ? 'top-[35px] right-[80px] w-5 h-[18px]' : 'top-[42px] right-[80px] w-6 h-[21.6px]'
+    favoritePosition: isTablet ? 'top-[35px] right-[80px] w-5 h-[18px]' : 'top-[42px] right-[80px] w-6 h-[21.6px]',
+    deletePosition: isTablet ? 'top-[35px] right-[40px] w-5 h-[18px]' : 'top-[42px] right-[40px] w-6 h-[21.6px]'
   };
 };
 
-function ListItem({ entry, onEditEntry, onUpdateEntry, activeFilters }: {
+function ListItem({ entry, onEditEntry, onUpdateEntry, onRequestDelete, activeFilters }: {
   entry: MatchaEntry;
   onEditEntry: (entryId: string) => void;
   onUpdateEntry: (id: string, updates: Partial<MatchaEntry>) => Promise<void>;
+  onRequestDelete: (id: string) => void;
   activeFilters: string[];
 }) {
   const [isEditing, setIsEditing] = useState<string | null>(null);
@@ -219,6 +223,17 @@ function ListItem({ entry, onEditEntry, onUpdateEntry, activeFilters }: {
               </svg>
             )}
           </button>
+
+          {/* Delete button */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onRequestDelete(entry.id);
+            }}
+            className="w-5 h-[18px] z-10 hover:scale-110 transition-transform flex-shrink-0"
+          >
+            <Trash2 className="w-full h-full text-[#342209]" strokeWidth={2} />
+          </button>
         </div>
       </motion.div>
     );
@@ -339,6 +354,17 @@ function ListItem({ entry, onEditEntry, onUpdateEntry, activeFilters }: {
           </svg>
         )}
       </button>
+
+      {/* Delete button */}
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onRequestDelete(entry.id);
+        }}
+        className={`absolute ${layout.deletePosition} z-10 hover:scale-110 transition-transform`}
+      >
+        <Trash2 className="w-full h-full text-[#342209]" strokeWidth={2} />
+      </button>
     </motion.div>
   );
 }
@@ -413,9 +439,24 @@ function NewEntryItem({ onAddEntry }: { onAddEntry: (entry: Omit<MatchaEntry, 'i
   );
 }
 
-export function ListView({ entries, activeFilters, onFiltersChange, onNavigateToView, onEditEntry, onUpdateEntry, onAddEntry, onSignOut, onNavigateToProfile }: ListViewProps) {
+export function ListView({ entries, activeFilters, onFiltersChange, onNavigateToView, onEditEntry, onUpdateEntry, onDeleteEntry, onAddEntry, onSignOut, onNavigateToProfile }: ListViewProps) {
   const { isMobile, isTablet} = useResponsive();
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [entryToDelete, setEntryToDelete] = useState<string | null>(null);
+
+  const handleDeleteConfirm = () => {
+    if (entryToDelete) {
+      onDeleteEntry(entryToDelete);
+    }
+    setShowDeleteConfirm(false);
+    setEntryToDelete(null);
+  };
+
+  const handleDeleteCancel = () => {
+    setShowDeleteConfirm(false);
+    setEntryToDelete(null);
+  };
 
   
   const toggleFilter = useCallback((filter: string) => {
@@ -483,6 +524,43 @@ export function ListView({ entries, activeFilters, onFiltersChange, onNavigateTo
 
   return (
     <div className="relative w-full min-h-screen bg-[#eddecf] overflow-auto">
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-white rounded-xl p-6 shadow-xl border border-white/60 max-w-sm w-full"
+            >
+              <h3 className="text-lg font-medium text-[#342209] mb-2">Are you sure you want to delete this entry?</h3>
+              <p className="text-sm text-[#342209]/70 mb-4">
+                This action cannot be undone.
+              </p>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={handleDeleteCancel}
+                  className="px-4 py-2 text-sm rounded-lg border border-[#342209]/20 text-[#342209] hover:bg-[#342209]/5 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteConfirm}
+                  className="px-4 py-2 text-sm rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+                >
+                  Confirm Delete
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Header */}
       <div className={`absolute ${responsive.headerTop} left-1/2 transform -translate-x-1/2 z-10`}>
         <div className={`font-['Syne'] font-normal ${responsive.headerFontSize} text-[#342209] tracking-[-2.4px] text-center`}>
@@ -573,6 +651,10 @@ export function ListView({ entries, activeFilters, onFiltersChange, onNavigateTo
                 entry={entry}
                 onEditEntry={onEditEntry}
                 onUpdateEntry={onUpdateEntry}
+                onRequestDelete={(id) => {
+                  setEntryToDelete(id);
+                  setShowDeleteConfirm(true);
+                }}
                 activeFilters={activeFilters}
               />
             ))}
