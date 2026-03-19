@@ -1,13 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import type { MatchaEntry, ViewType } from "../types";
-// import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useResponsive } from '../hooks/useResponsive';
-// import svgPaths from '../imports/svg-6owz6pfb8x';
-// import imgRectangle3 from "figma:asset/dc6fd5a4a8fa791d2e308774ae9cdd5d0400c792.png";
-// import imgRectangle15 from "figma:asset/cc2e29cb7decd5e1b94615650ce7e42071d9c94a.png";
-// import imgRectangle16 from "figma:asset/e1d39a1e66254ce927156619bbbe9078d9bda195.png";
-// import matchaImage from '../assets/rocky-matcha.png';
 import Frame40 from '../imports/Frame40';
 import { ProfileMenu } from './ProfileMenu';
 import Group2 from '../imports/Group2';
@@ -446,7 +440,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
                 scale: 0.98
               }}
             >
-              <Frame40 isNewEntry={true} />
+              <Frame40 isNewEntry={true} fill={true} />
             </motion.button>
           )}
           
@@ -520,7 +514,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
                     scale: isCenter ? 0.98 : 0.73
                   }}
                 >
-                  <Frame40 isNewEntry={true} />
+                  <Frame40 isNewEntry={true} fill={true} />
                 </motion.button>
               );
             }
@@ -536,6 +530,8 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
                 <motion.button
                   key={`${imageData.index}-${imageData.position}`}
                   onClick={() => handleCarouselClick(imageData.index)}
+                  onMouseEnter={() => setHoveredImageIndex(imageData.index)}
+                  onMouseLeave={() => setHoveredImageIndex(null)}
                   className="absolute rounded-[6px] overflow-hidden cursor-pointer outline-none focus:outline-none"
                   style={{
                     width: `${width}px`,
@@ -566,7 +562,55 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
                     scale: isCenter ? 0.98 : 0.73
                   }}
                 >
-                  <Frame40 />
+                  <div className={`w-full h-full transition-all duration-300 ${
+                    hoveredImageIndex === imageData.index ? 'blur-sm opacity-70' : ''
+                  }`}>
+                    <Frame40 fill={true} />
+                  </div>
+                  <div
+                    className="absolute inset-0 rounded-[6px] border-[2.52px] border-[#c2b7ab] pointer-events-none"
+                    style={{
+                      opacity: hoveredImageIndex === imageData.index ? 1 : 0,
+                      transition: 'opacity 160ms ease 140ms'
+                    }}
+                  />
+
+                  {/* Hover Overlay */}
+                  <AnimatePresence>
+                    {hoveredImageIndex === imageData.index && imageData.entry && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 rounded-[5px] p-4"
+                      >
+                        <div className="text-center space-y-2">
+                          <div className="font-['Syne'] font-normal text-[20px] text-white tracking-[-1.5px] drop-shadow-lg">
+                            {imageData.entry.name}
+                          </div>
+                          <div className="font-['Syne'] font-normal text-[14px] text-white/90 uppercase tracking-[-0.7px] drop-shadow-lg">
+                            {imageData.entry.brand}
+                          </div>
+                          <div className="flex gap-[6px] justify-center mt-3 flex-wrap">
+                            {Object.entries(imageData.entry.flavorProfile)
+                              .filter(([_, active]) => active)
+                              .map(([flavor, _]) => (
+                                <div
+                                  key={flavor}
+                                  className="bg-white/90 border border-[#342209] rounded-[10px] px-[6px] py-[1px] h-[20px] flex items-center justify-center"
+                                >
+                                  <span className="font-['Syne'] font-normal text-[12px] text-[#342209] tracking-[-0.9px] uppercase">
+                                    {flavor}
+                                  </span>
+                                </div>
+                              ))
+                            }
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.button>
               );
             }
@@ -641,7 +685,7 @@ export function LandingPage({ entries, currentIndex, onIndexChange, onNavigateTo
                   }`}
                   style={{ display: imageData.src ? 'none' : 'block' }}
                 >
-                  <Frame40 />
+                  <Frame40 fill={true} />
                 </div>
                 
                 {/* Hover Overlay */}
