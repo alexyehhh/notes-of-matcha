@@ -15,10 +15,22 @@ function Frame41({ isNewEntry = false, hideContent = false }: { isNewEntry?: boo
   );
 }
 
-export default function Frame40({ isNewEntry = false, hideContent = false }: { isNewEntry?: boolean; hideContent?: boolean }) {
+export default function Frame40({
+  isNewEntry = false,
+  hideContent = false,
+  fill = false
+}: {
+  isNewEntry?: boolean;
+  hideContent?: boolean;
+  fill?: boolean;
+}) {
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <div className="relative bg-[#fff9f3] opacity-50 rounded-[7px] w-full max-w-[506px] aspect-[506/642] mx-auto">
+      <div
+        className={`relative bg-[#fff9f3] opacity-50 rounded-[7px] mx-auto ${
+          fill ? 'w-full h-full' : 'w-full max-w-[506px] aspect-[506/642]'
+        }`}
+      >
         <div aria-hidden="true" className={`absolute border-[#c2b7ab] border-[2.52px] border-solid inset-0 pointer-events-none rounded-[7px] ${hideContent ? 'opacity-0' : ''}`} />
         <Frame41 isNewEntry={isNewEntry} hideContent={hideContent} />
       </div>
