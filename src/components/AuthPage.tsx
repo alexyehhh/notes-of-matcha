@@ -44,36 +44,28 @@ export function AuthPage() {
   const { signInWithUsername, signUp, requestPasswordReset } = useAuth();
 
   useEffect(() => {
-    const verified =
-      sessionStorage.getItem('nom:accountVerified') === '1' ||
-      localStorage.getItem('nom:accountVerified') === '1';
-    if (!verified) return;
-    sessionStorage.removeItem('nom:accountVerified');
-    localStorage.removeItem('nom:accountVerified');
-    setMode('signin');
-    setBanner('verified');
-  }, []);
-
-  useEffect(() => {
-    const applyVerified = () => {
-      const verified =
-        sessionStorage.getItem('nom:accountVerified') === '1' ||
-        localStorage.getItem('nom:accountVerified') === '1';
-      if (!verified) return;
-      sessionStorage.removeItem('nom:accountVerified');
-      localStorage.removeItem('nom:accountVerified');
+    const verifiedKey = 'nom:accountVerified';
+    const seenKey = 'nom:accountVerifiedSeen';
+    const markVerified = (value?: string | null) => {
+      const timestamp = Number(value ?? localStorage.getItem(verifiedKey));
+      if (!Number.isFinite(timestamp) || timestamp <= 0) return;
+      const seen = Number(sessionStorage.getItem(seenKey) ?? '0');
+      if (timestamp <= seen) return;
+      sessionStorage.setItem(seenKey, String(timestamp));
       setMode('signin');
       setBanner('verified');
     };
 
+    markVerified();
+
     const handleStorage = (event: StorageEvent) => {
-      if (event.key !== 'nom:accountVerified') return;
-      applyVerified();
+      if (event.key !== verifiedKey) return;
+      markVerified(event.newValue ?? event.oldValue);
     };
 
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        applyVerified();
+        markVerified();
       }
     };
 
