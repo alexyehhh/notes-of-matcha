@@ -28,7 +28,7 @@ begin
     perform cron.schedule(
       'cleanup_unverified_users',
       '0 * * * *',
-      $$select public.cleanup_unverified_users();$$
+      $cron$select public.cleanup_unverified_users();$cron$
     );
   end if;
 end $$;
