@@ -54,6 +54,10 @@ export function useAuth() {
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/?verified=1`,
+        data: {
+          name,
+          username,
+        },
       },
     });
     if (error || !data.user) {
@@ -62,17 +66,6 @@ export function useAuth() {
       }
       return { data, error };
     }
-
-    // Set session so the update runs as authenticated user
-    if (data.session) {
-      await supabase.auth.setSession(data.session);
-    }
-    // Wait briefly for trigger to create profile row
-    await new Promise(resolve => setTimeout(resolve, 500));
-    await supabase
-      .from('profiles')
-      .update({ name, username, email })
-      .eq('id', data.user.id);
 
     // Ensure user is not logged in until they verify email
     if (data.session) {
