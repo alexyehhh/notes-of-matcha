@@ -43,9 +43,12 @@ export function AuthPage() {
   const { signInWithUsername, signUp, requestPasswordReset } = useAuth();
 
   useEffect(() => {
-    const verified = sessionStorage.getItem('nom:accountVerified') === '1';
+    const verified =
+      sessionStorage.getItem('nom:accountVerified') === '1' ||
+      localStorage.getItem('nom:accountVerified') === '1';
     if (!verified) return;
     sessionStorage.removeItem('nom:accountVerified');
+    localStorage.removeItem('nom:accountVerified');
     setMode('signin');
     toast.success('Account verified. Please log in.');
   }, []);
