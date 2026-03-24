@@ -23,6 +23,7 @@ const EyeIcon = ({ visible }: { visible: boolean }) => (
 
 export function AuthPage() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
+  const [banner, setBanner] = useState<'sent' | 'verified' | null>(null);
 
   // Sign in fields
   const [signInUsername, setSignInUsername] = useState('');
@@ -50,7 +51,7 @@ export function AuthPage() {
     sessionStorage.removeItem('nom:accountVerified');
     localStorage.removeItem('nom:accountVerified');
     setMode('signin');
-    toast.success('Account verified. Please log in.');
+    setBanner('verified');
   }, []);
 
   const handleSubmit = useCallback(async () => {
@@ -85,7 +86,7 @@ export function AuthPage() {
       } else {
         const { error } = await signUp(signUpEmail, signUpPassword, signUpName, signUpUsername);
         if (error) throw error;
-        toast.success('Email verification sent. Please check your inbox.');
+        setBanner('sent');
       }
     } catch (error: any) {
       toast.error(error.message ?? 'Something went wrong');
@@ -148,6 +149,13 @@ export function AuthPage() {
 
         {/* Card */}
         <div className="bg-[#fff9f3] rounded-2xl border border-[#d7cbbd] p-8 shadow-sm">
+          {banner && (
+            <div className="mb-5 rounded-lg border border-[#7CB342]/40 bg-[#f1f7e8] px-4 py-3 text-sm text-[#3e6f2c]">
+              {banner === 'sent'
+                ? 'Email verification sent. Please check your inbox.'
+                : 'Account verified. Please log in.'}
+            </div>
+          )}
           {/* Mode toggle */}
           <div className="flex bg-[#eddecf] rounded-lg p-1 mb-6">
             {(['signin', 'signup'] as const).map((m) => (
