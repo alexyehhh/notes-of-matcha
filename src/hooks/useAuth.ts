@@ -67,6 +67,17 @@ export function useAuth() {
       return { data, error };
     }
 
+    // Track pending verification so we can show the right login message
+    if (data.user) {
+      await supabase
+        .from('pending_users')
+        .upsert({
+          user_id: data.user.id,
+          email,
+          username,
+        }, { onConflict: 'user_id' });
+    }
+
     // Ensure user is not logged in until they verify email
     if (data.session) {
       await supabase.auth.signOut();
@@ -89,11 +100,31 @@ export function useAuth() {
       .maybeSingle();
 
     if (profileError || !profile?.email) {
+      const { data: pending } = await supabase
+        .from('pending_users')
+        .select('created_at')
+        .eq('username', username)
+        .maybeSingle();
+
+      if (pending?.created_at) {
+        const createdAt = new Date(pending.created_at).getTime();
+        const expiresAt = createdAt + 60 * 60 * 1000;
+        if (Date.now() < expiresAt) {
+          return { data: null, error: new Error('Account not verified. Please check your inbox for verification.') };
+        }
+        return { data: null, error: new Error('Verification expired. Please sign up again.') };
+      }
+
       return { data: null, error: new Error('Incorrect username or password') };
     }
 
     const { data, error } = await supabase.auth.signInWithPassword({ email: profile.email, password });
-    if (error) return { data: null, error: new Error('Incorrect username or password') };
+    if (error) {
+      if (error.message?.toLowerCase().includes('email not confirmed')) {
+        return { data: null, error: new Error('Account not verified. Please check your inbox for verification.') };
+      }
+      return { data: null, error: new Error('Incorrect username or password') };
+    }
     return { data, error };
   };
 
