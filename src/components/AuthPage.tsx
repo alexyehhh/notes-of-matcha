@@ -54,6 +54,37 @@ export function AuthPage() {
     setBanner('verified');
   }, []);
 
+  useEffect(() => {
+    const applyVerified = () => {
+      const verified =
+        sessionStorage.getItem('nom:accountVerified') === '1' ||
+        localStorage.getItem('nom:accountVerified') === '1';
+      if (!verified) return;
+      sessionStorage.removeItem('nom:accountVerified');
+      localStorage.removeItem('nom:accountVerified');
+      setMode('signin');
+      setBanner('verified');
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== 'nom:accountVerified') return;
+      applyVerified();
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        applyVerified();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      window.removeEventListener('storage', handleStorage);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
+
   const handleSubmit = useCallback(async () => {
 
 
