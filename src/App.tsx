@@ -50,7 +50,7 @@ export default function App() {
     const isSignupConfirm = hash.includes('type=signup') || search.includes('type=signup') || search.includes('verified=1');
     if (!isSignupConfirm) return;
 
-    localStorage.setItem(VERIFIED_STORAGE_KEY, String(Date.now()));
+    localStorage.setItem(VERIFIED_STORAGE_KEY, '1');
     setForceAuth(true);
     window.history.replaceState({}, '', window.location.pathname);
     void signOut();
