@@ -11,7 +11,7 @@ declare
 begin
   delete from auth.users
   where email_confirmed_at is null
-    and created_at < now() - interval '24 hours';
+    and created_at < now() - interval '1 hour';
 
   get diagnostics deleted_count = row_count;
   return deleted_count;
@@ -27,7 +27,7 @@ begin
   ) then
     perform cron.schedule(
       'cleanup_unverified_users',
-      '0 3 * * *',
+      '0 * * * *',
       $$select public.cleanup_unverified_users();$$
     );
   end if;
