@@ -23,6 +23,7 @@ export default function App() {
   const entriesRef = useRef<MatchaEntry[]>([]);
   const { user, isLoading: isAuthLoading, signOut } = useAuth();
   const prevUserRef = useRef<typeof user | null>(null);
+  const [forceAuth, setForceAuth] = useState(false);
   const [currentView, setCurrentView] = useState<ViewType>('landing');
   const [previousView, setPreviousView] = useState<ViewType>('landing');
   const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
@@ -40,6 +41,24 @@ export default function App() {
 
 
   const [matchaEntries, setMatchaEntries] = useState<MatchaEntry[]>([]);
+
+  useEffect(() => {
+    const hash = window.location.hash ?? '';
+    const search = window.location.search ?? '';
+    const isSignupConfirm = hash.includes('type=signup') || search.includes('type=signup') || search.includes('verified=1');
+    if (!isSignupConfirm) return;
+
+    sessionStorage.setItem('nom:accountVerified', '1');
+    setForceAuth(true);
+    window.history.replaceState({}, '', window.location.pathname);
+    void signOut();
+  }, [signOut]);
+
+  useEffect(() => {
+    if (forceAuth && user) {
+      setForceAuth(false);
+    }
+  }, [forceAuth, user]);
 
   const isRecoveryFlow = useCallback(() => {
     const hash = window.location.hash ?? '';
@@ -538,7 +557,7 @@ export default function App() {
     </>;
   }
 
-  if (!user) {
+  if (forceAuth || !user) {
     return <>
       <AuthPage />
       <Toaster position="top-right" />
