@@ -18,6 +18,8 @@ import { FullPageLoader } from './components/LoadingSpinner';
 import * as matchaApi from './services/matchaApi';
 import { resolveImageUrl, isStoragePath } from './lib/images';
 
+const VERIFIED_STORAGE_KEY = 'nom:accountVerified';
+
 export default function App() {
   const didInit = useRef(false);
   const entriesRef = useRef<MatchaEntry[]>([]);
@@ -48,11 +50,20 @@ export default function App() {
     const isSignupConfirm = hash.includes('type=signup') || search.includes('type=signup') || search.includes('verified=1');
     if (!isSignupConfirm) return;
 
-    sessionStorage.setItem('nom:accountVerified', '1');
+    localStorage.setItem(VERIFIED_STORAGE_KEY, '1');
     setForceAuth(true);
     window.history.replaceState({}, '', window.location.pathname);
     void signOut();
   }, [signOut]);
+
+  useEffect(() => {
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key !== VERIFIED_STORAGE_KEY || event.newValue !== '1') return;
+      sessionStorage.setItem(VERIFIED_STORAGE_KEY, '1');
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   useEffect(() => {
     if (forceAuth && user) {
