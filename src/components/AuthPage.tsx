@@ -23,7 +23,7 @@ const EyeIcon = ({ visible }: { visible: boolean }) => (
 
 export function AuthPage() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
-  const [banner, setBanner] = useState<'sent' | 'verified' | null>(null);
+  const [banner, setBanner] = useState<'sent' | null>(null);
 
   // Sign in fields
   const [signInUsername, setSignInUsername] = useState('');
@@ -45,27 +45,23 @@ export function AuthPage() {
 
   useEffect(() => {
     const verifiedKey = 'nom:accountVerified';
-    const seenKey = 'nom:accountVerifiedSeen';
-    const markVerified = (value?: string | null) => {
-      const timestamp = Number(value ?? localStorage.getItem(verifiedKey));
-      if (!Number.isFinite(timestamp) || timestamp <= 0) return;
-      const seen = Number(sessionStorage.getItem(seenKey) ?? '0');
-      if (timestamp <= seen) return;
-      sessionStorage.setItem(seenKey, String(timestamp));
+    const applyVerified = () => {
+      const verified = localStorage.getItem(verifiedKey) === '1';
+      if (!verified) return;
+      localStorage.removeItem(verifiedKey);
       setMode('signin');
-      setBanner('verified');
     };
 
-    markVerified();
+    applyVerified();
 
     const handleStorage = (event: StorageEvent) => {
       if (event.key !== verifiedKey) return;
-      markVerified(event.newValue ?? event.oldValue);
+      applyVerified();
     };
 
     const handleVisibility = () => {
       if (document.visibilityState === 'visible') {
-        markVerified();
+        applyVerified();
       }
     };
 
@@ -174,9 +170,7 @@ export function AuthPage() {
         <div className="bg-[#fff9f3] rounded-2xl border border-[#d7cbbd] p-8 shadow-sm">
           {banner && (
             <div className="mb-5 rounded-lg border border-[#7CB342]/40 bg-[#f1f7e8] px-4 py-3 text-sm text-[#3e6f2c]">
-              {banner === 'sent'
-                ? 'Email verification sent. Please check your inbox.'
-                : 'Account verified. Please log in.'}
+              {'Email verification sent. Please check your inbox.'}
             </div>
           )}
           {/* Mode toggle */}
