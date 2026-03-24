@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../hooks/useAuth';
 import { toast } from 'sonner';
@@ -42,6 +42,14 @@ export function AuthPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { signInWithUsername, signUp, requestPasswordReset } = useAuth();
 
+  useEffect(() => {
+    const verified = sessionStorage.getItem('nom:accountVerified') === '1';
+    if (!verified) return;
+    sessionStorage.removeItem('nom:accountVerified');
+    setMode('signin');
+    toast.success('Account verified. Please log in.');
+  }, []);
+
   const handleSubmit = useCallback(async () => {
 
 
@@ -74,8 +82,7 @@ export function AuthPage() {
       } else {
         const { error } = await signUp(signUpEmail, signUpPassword, signUpName, signUpUsername);
         if (error) throw error;
-        sessionStorage.setItem('nom:forceLanding', '1');
-        toast.success('Account created! Welcome to Notes of Matcha.');
+        toast.success('Email verification sent. Please check your inbox.');
       }
     } catch (error: any) {
       toast.error(error.message ?? 'Something went wrong');
