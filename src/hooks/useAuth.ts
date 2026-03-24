@@ -49,7 +49,13 @@ export function useAuth() {
       return { data: null, error: new Error('Username is already taken') };
     }
 
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/?verified=1`,
+      },
+    });
     if (error || !data.user) {
       if (error?.message?.toLowerCase().includes('already registered')) {
         return { data: null, error: new Error('This email is already used by another user. Try logging in instead.') };
@@ -67,6 +73,11 @@ export function useAuth() {
       .from('profiles')
       .update({ name, username, email })
       .eq('id', data.user.id);
+
+    // Ensure user is not logged in until they verify email
+    if (data.session) {
+      await supabase.auth.signOut();
+    }
 
     return { data, error };
   };
