@@ -50,20 +50,11 @@ export default function App() {
     const isSignupConfirm = hash.includes('type=signup') || search.includes('type=signup') || search.includes('verified=1');
     if (!isSignupConfirm) return;
 
-    localStorage.setItem(VERIFIED_STORAGE_KEY, '1');
+    localStorage.setItem(VERIFIED_STORAGE_KEY, String(Date.now()));
     setForceAuth(true);
     window.history.replaceState({}, '', window.location.pathname);
     void signOut();
   }, [signOut]);
-
-  useEffect(() => {
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key !== VERIFIED_STORAGE_KEY || event.newValue !== '1') return;
-      sessionStorage.setItem(VERIFIED_STORAGE_KEY, '1');
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
 
   useEffect(() => {
     if (forceAuth && user) {
