@@ -52,6 +52,7 @@ Fill in your credentials from step 2:
 ```
 VITE_SUPABASE_URL=your_project_url_here
 VITE_SUPABASE_ANON_KEY=your_anon_key_here
+VITE_SUPABASE_IMAGE_BUCKET=matcha-images
 ```
 
 ### 3b. Configure UserCheck (optional but recommended)
@@ -66,12 +67,20 @@ npx supabase secrets set USERCHECK_API_KEY=your_usercheck_api_key
 ```bash
 npx supabase functions deploy usercheck
 ```
+
  
 ### 4. Apply database migrations
  
 ```bash
 npx supabase db reset
 ```
+
+### 4b. Create the storage bucket (local)
+
+Open Supabase Studio at `http://localhost:54323`, go to **Storage**, and create a bucket named `matcha-images` with:
+- Public bucket: Off (private)
+- File size limit: 5 MB
+- Allowed MIME types: `image/jpeg`, `image/png`, `image/heic`, `image/heif`
  
 ### 5. Run the app
  
