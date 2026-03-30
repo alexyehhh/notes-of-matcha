@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { checkDisposableEmail } from '../lib/usercheck';
 import type { User, Session } from '@supabase/supabase-js';
 
 interface AuthState {
@@ -47,6 +48,14 @@ export function useAuth() {
 
     if (existing) {
       return { data: null, error: new Error('Username is already taken') };
+    }
+
+    const validation = await checkDisposableEmail(email);
+    if (validation.disposable) {
+      const suggestion = validation.did_you_mean
+        ? ` Did you mean ${validation.did_you_mean}?`
+        : '';
+      return { data: null, error: new Error(`Please use a valid email address.${suggestion}`) };
     }
 
     const { data, error } = await supabase.auth.signUp({
