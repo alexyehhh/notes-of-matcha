@@ -11,7 +11,20 @@ export async function checkDisposableEmail(email: string): Promise<UserCheckResu
   });
 
   if (error) {
-    throw new Error(error.message || 'Unable to validate email. Please try again.');
+    let message = error.message || 'Unable to validate email. Please try again.';
+    const contextBody = (error as { context?: { body?: string } })?.context?.body;
+    if (typeof contextBody === 'string') {
+      try {
+        const parsed = JSON.parse(contextBody) as { error?: string };
+        if (parsed?.error) message = parsed.error;
+      } catch {
+        // Ignore JSON parse failures and keep the default message.
+      }
+    }
+    if ((data as { error?: string } | null)?.error) {
+      message = (data as { error?: string }).error || message;
+    }
+    throw new Error(message);
   }
 
   if (!data || typeof data.disposable !== 'boolean') {
